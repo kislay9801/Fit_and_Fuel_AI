@@ -1,0 +1,42 @@
+mutation SeedDatabase @transaction {
+  user_insertMany(data: [
+    {
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      email: "jane@example.com",
+      displayName: "Jane Doe",
+      fitnessGoal: "Build Muscle"
+    },
+    {
+      id: "550e8400-e29b-41d4-a716-446655440001",
+      email: "john@example.com",
+      displayName: "John Smith",
+      fitnessGoal: "Weight Loss"
+    }
+  ])
+  exercise_insertMany(data: [
+    {
+      id: "b4920268-2a9e-4e4b-9f17-d5d4d38c6422",
+      name: "Bench Press",
+      muscleGroup: "Chest",
+      description: "Lying on a bench, push a barbell upwards from your chest.",
+      difficultyLevel: "Intermediate"
+    },
+    {
+      id: "c5a0e059-450f-4b00-845a-c603e9112233",
+      name: "Squat",
+      muscleGroup: "Legs",
+      description: "Lower your hips from a standing position and then stand back up.",
+      difficultyLevel: "Advanced"
+    }
+  ])
+  session_insertMany(data: [
+    {
+      id: "d67e5845-6677-4b77-a889-8d7d91e00001",
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      exerciseId: "b4920268-2a9e-4e4b-9f17-d5d4d38c6422",
+      timestamp: "2023-10-27T10:00:00Z",
+      duration: 45,
+      totalScore: 85.5
+    }
+  ])
+}

@@ -1,0 +1,267 @@
+﻿
+> fit-fuel-coach@1.0.0 test
+> node --test src/utils/repCounting.test.js src/utils/formScoring.test.js src/utils/videoSampling.test.js src/services/PoseService.test.js
+
+TAP version 13
+# [PoseService] Initializing pose detector with bundled assets...
+# [PoseService] Failed to initialize pose detector: FilesetResolver.forVisionOnWeb is not a function TypeError: FilesetResolver.forVisionOnWeb is not a function
+#     at file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.js:83:46
+#     at PoseService.initialize (file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.js:106:7)
+#     at TestContext.<anonymous> (file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.test.js:28:25)
+#     at Test.runInAsyncScope (node:async_hooks:206:9)
+#     at Test.run (node:internal/test_runner/test:639:25)
+#     at async Suite.processPendingSubtests (node:internal/test_runner/test:382:7)
+# [PoseService] Initializing pose detector with bundled assets...
+# [PoseService] Failed to initialize pose detector: FilesetResolver.forVisionOnWeb is not a function TypeError: FilesetResolver.forVisionOnWeb is not a function
+#     at file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.js:83:46
+#     at PoseService.initialize (file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.js:106:7)
+#     at TestContext.<anonymous> (file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.test.js:42:35)
+#     at Test.runInAsyncScope (node:async_hooks:206:9)
+#     at Test.run (node:internal/test_runner/test:639:25)
+#     at async Suite.processPendingSubtests (node:internal/test_runner/test:382:7)
+# [PoseService] Initializing pose detector with bundled assets...
+# [PoseService] Failed to initialize pose detector: FilesetResolver.forVisionOnWeb is not a function TypeError: FilesetResolver.forVisionOnWeb is not a function
+#     at file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.js:83:46
+#     at PoseService.initialize (file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.js:106:7)
+#     at TestContext.<anonymous> (file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.test.js:58:26)
+#     at Test.runInAsyncScope (node:async_hooks:206:9)
+#     at Test.run (node:internal/test_runner/test:639:25)
+#     at async Suite.processPendingSubtests (node:internal/test_runner/test:382:7)
+# Subtest: PoseService
+    # Subtest: initializes with idle state
+    ok 1 - initializes with idle state
+      ---
+      duration_ms: 0.5245
+      ...
+    # Subtest: transitions to loading state during initialization
+    ok 2 - transitions to loading state during initialization
+      ---
+      duration_ms: 9.311
+      ...
+    # Subtest: returns error on multiple initialize calls to same service
+    not ok 3 - returns error on multiple initialize calls to same service
+      ---
+      duration_ms: 23.4323
+      location: 'file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.test.js:38:3'
+      failureType: 'testCodeFailure'
+      error: |-
+        The expression evaluated to a falsy value:
+        
+          assert((result1 === undefined && result2 === undefined) || (result1 && result2))
+        
+      code: 'ERR_ASSERTION'
+      name: 'AssertionError'
+      expected: true
+      operator: '=='
+      stack: |-
+        TestContext.<anonymous> (file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.test.js:50:5)
+        async Test.run (node:internal/test_runner/test:640:9)
+        async Suite.processPendingSubtests (node:internal/test_runner/test:382:7)
+      ...
+    # Subtest: sets error state on initialization failure
+    ok 4 - sets error state on initialization failure
+      ---
+      duration_ms: 3.4696
+      ...
+    # Subtest: throws error when sending frame to failed service
+    ok 5 - throws error when sending frame to failed service
+      ---
+      duration_ms: 0.8878
+      ...
+    # Subtest: closes properly and cleans up resources
+    ok 6 - closes properly and cleans up resources
+      ---
+      duration_ms: 0.3483
+      ...
+    1..6
+not ok 1 - PoseService
+  ---
+  duration_ms: 44.6687
+  type: 'suite'
+  location: 'file:///C:/Users/kaustubh/OneDrive/Desktop/gym_form_detection/frontend/src/services/PoseService.test.js:5:1'
+  failureType: 'subtestsFailed'
+  error: '1 subtest failed'
+  code: 'ERR_TEST_FAILURE'
+  ...
+# Subtest: pose angle and scoring utilities
+    # Subtest: calculates a right angle at the middle point
+    ok 1 - calculates a right angle at the middle point
+      ---
+      duration_ms: 0.5043
+      ...
+    # Subtest: keeps squat scores inside the 0-100 range
+    ok 2 - keeps squat scores inside the 0-100 range
+      ---
+      duration_ms: 0.5278
+      ...
+    1..2
+ok 2 - pose angle and scoring utilities
+  ---
+  duration_ms: 4.1517
+  type: 'suite'
+  ...
+# Subtest: fast mode reliability tests
+    # Subtest: fast mode never returns zero frames
+    ok 1 - fast mode never returns zero frames
+      ---
+      duration_ms: 1.1135
+      ...
+    # Subtest: fast mode extracts expected frame count for typical videos
+    ok 2 - fast mode extracts expected frame count for typical videos
+      ---
+      duration_ms: 0.2799
+      ...
+    # Subtest: normal mode extracts more frames than fast mode for same video
+    ok 3 - normal mode extracts more frames than fast mode for same video
+      ---
+      duration_ms: 0.313
+      ...
+    # Subtest: very short clips (< 1s) still extract frames
+    ok 4 - very short clips (< 1s) still extract frames
+      ---
+      duration_ms: 0.3653
+      ...
+    # Subtest: frame sampling covers the entire video duration
+    ok 5 - frame sampling covers the entire video duration
+      ---
+      duration_ms: 0.2433
+      ...
+    # Subtest: frame times are monotonically increasing
+    ok 6 - frame times are monotonically increasing
+      ---
+      duration_ms: 0.3438
+      ...
+    # Subtest: scoring works with sparse frames from fast mode
+    ok 7 - scoring works with sparse frames from fast mode
+      ---
+      duration_ms: 1.3423
+      ...
+    # Subtest: idle detection still works with sparse frames
+    ok 8 - idle detection still works with sparse frames
+      ---
+      duration_ms: 0.5161
+      ...
+    1..8
+ok 3 - fast mode reliability tests
+  ---
+  duration_ms: 5.9549
+  type: 'suite'
+  ...
+# Subtest: RepCounter
+    # Subtest: counts one squat rep only after a down-up cycle
+    ok 1 - counts one squat rep only after a down-up cycle
+      ---
+      duration_ms: 0.7062
+      ...
+    # Subtest: does not double count while staying below or above thresholds
+    ok 2 - does not double count while staying below or above thresholds
+      ---
+      duration_ms: 0.3785
+      ...
+    1..2
+ok 4 - RepCounter
+  ---
+  duration_ms: 4.992
+  type: 'suite'
+  ...
+# Subtest: createSampleTimes
+    # Subtest: returns no frames and warning for invalid duration
+    ok 1 - returns no frames and warning for invalid duration
+      ---
+      duration_ms: 1.9805
+      ...
+    # Subtest: includes first and last usable timestamps
+    ok 2 - includes first and last usable timestamps
+      ---
+      duration_ms: 0.4307
+      ...
+    # Subtest: caps and falls back to safe mode for very long videos
+    ok 3 - caps and falls back to safe mode for very long videos
+      ---
+      duration_ms: 0.2256
+      ...
+    # Subtest: normal mode samples more densely than fast mode
+    ok 4 - normal mode samples more densely than fast mode
+      ---
+      duration_ms: 0.3635
+      ...
+    # Subtest: always returns minimum 2 unique frames
+    ok 5 - always returns minimum 2 unique frames
+      ---
+      duration_ms: 1.9036
+      ...
+    # Subtest: handles very short videos (< 0.1 seconds)
+    ok 6 - handles very short videos (< 0.1 seconds)
+      ---
+      duration_ms: 0.2615
+      ...
+    # Subtest: handles very long videos with auto-fallback
+    ok 7 - handles very long videos with auto-fallback
+      ---
+      duration_ms: 0.2267
+      ...
+    # Subtest: never has duplicate timestamps
+    ok 8 - never has duplicate timestamps
+      ---
+      duration_ms: 1.9924
+      ...
+    # Subtest: respects target FPS limits
+    ok 9 - respects target FPS limits
+      ---
+      duration_ms: 0.449
+      ...
+    # Subtest: provides timing information in result
+    ok 10 - provides timing information in result
+      ---
+      duration_ms: 0.4023
+      ...
+    # Subtest: first frame is always at 0
+    ok 11 - first frame is always at 0
+      ---
+      duration_ms: 1.0517
+      ...
+    # Subtest: last frame is always near video end
+    ok 12 - last frame is always near video end
+      ---
+      duration_ms: 1.947
+      ...
+    # Subtest: distributes frames evenly across video
+    ok 13 - distributes frames evenly across video
+      ---
+      duration_ms: 0.3702
+      ...
+    # Subtest: handles precision edge cases with toFixed(3)
+    ok 14 - handles precision edge cases with toFixed(3)
+      ---
+      duration_ms: 1.034
+      ...
+    # Subtest: invalid preset falls back to fast
+    ok 15 - invalid preset falls back to fast
+      ---
+      duration_ms: 0.2216
+      ...
+    # Subtest: safe mode exists and provides adequate coverage
+    ok 16 - safe mode exists and provides adequate coverage
+      ---
+      duration_ms: 0.2887
+      ...
+    # Subtest: handles zero and negative durations gracefully
+    ok 17 - handles zero and negative durations gracefully
+      ---
+      duration_ms: 0.1777
+      ...
+    1..17
+ok 5 - createSampleTimes
+  ---
+  duration_ms: 20.4884
+  type: 'suite'
+  ...
+1..5
+# tests 35
+# suites 5
+# pass 34
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 223.4497

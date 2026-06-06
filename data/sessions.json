@@ -1,0 +1,85 @@
+[
+  {
+    "id": "e928de94-0005-4ea4-a2ca-dc5a7ac82798",
+    "user_id": "user_kislay9801_gmail_com",
+    "exercise": "squat",
+    "form_score": 36.0,
+    "reps": 0,
+    "issues": [
+      "knee_valgus",
+      "forward_lean"
+    ],
+    "best_score": 49.0,
+    "worst_score": 22.0,
+    "created_at": "2026-06-04T11:31:17.939930+00:00"
+  },
+  {
+    "id": "cc9359b1-4d81-4d81-8f59-128433951c53",
+    "user_id": "user_kislay9801_gmail_com",
+    "exercise": "pushup",
+    "form_score": 72.0,
+    "reps": 0,
+    "issues": [],
+    "best_score": 80.0,
+    "worst_score": 64.0,
+    "created_at": "2026-06-04T11:31:52.256278+00:00"
+  },
+  {
+    "id": "0bf3fd32-a673-41ff-9a12-2a44805ecaf9",
+    "user_id": "user_kislay9801_gmail_com",
+    "exercise": "squat",
+    "form_score": 85.0,
+    "reps": 6,
+    "issues": [],
+    "best_score": 100.0,
+    "worst_score": 60.0,
+    "created_at": "2026-06-04T11:32:46.733688+00:00"
+  },
+  {
+    "id": "79feafee-71da-4fe5-8e75-5d5640e95505",
+    "user_id": "user_kislay9801_gmail_com",
+    "exercise": "pushup",
+    "form_score": 72.0,
+    "reps": 0,
+    "issues": [],
+    "best_score": 88.0,
+    "worst_score": 55.0,
+    "created_at": "2026-06-04T11:34:12.220776+00:00"
+  },
+  {
+    "id": "64068f0b-1b39-47af-94f0-9062e609c9ee",
+    "user_id": "user_kislay9801_gmail_com",
+    "exercise": "squat",
+    "form_score": 50.0,
+    "reps": 12,
+    "issues": [
+      "forward_lean",
+      "knee_valgus"
+    ],
+    "best_score": 85.0,
+    "worst_score": 24.0,
+    "created_at": "2026-06-04T11:45:45.732907+00:00"
+  },
+  {
+    "id": "c1b1986f-5fcb-4bfa-983a-2432e1986eb0",
+    "user_id": "user_kislay9801_gmail_com",
+    "exercise": "squat",
+    "form_score": 85.0,
+    "reps": 6,
+    "issues": [],
+    "best_score": 100.0,
+    "worst_score": 60.0,
+    "created_at": "2026-06-04T11:46:28.483875+00:00"
+  },
+  {
+    "id": "908a2326-ce93-412a-9e11-3c8dbde07649",
+    "user_id": "user_kislay9801_gmail_com",
+    "exercise": "squat",
+    "form_score": 85.0,
+    "reps": 6,
+    "issues": [],
+    "best_score": 100.0,
+    "worst_score": 60.0,
+    "created_at": "2026-06-05T07:12:20.163831+00:00"
+  }
+]
