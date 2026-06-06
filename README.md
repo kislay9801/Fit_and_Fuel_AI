@@ -15,35 +15,7 @@ This version intentionally does not use Supabase or Claude. Those integrations a
 
 ## Quick Start
 
-### Backend
-
-```bash
-cd backend
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-python main.py
-```
-
-Backend runs at `http://localhost:8000`.
-
-### Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Frontend runs at `http://localhost:5173`.
-
-Optional frontend environment variable:
-
-```env
-VITE_API_URL=http://localhost:8000
-```
-
-No Supabase or Claude environment variables are required for this version.
+Live Demo: https://your-project.vercel.app
 
 ## Core Flow
 
@@ -77,11 +49,11 @@ data/
 
 ## Supported Exercises
 
-| Exercise | Key Metrics | Risk Flags |
-|---|---|---|
-| Squat | Knee angle, knee valgus, spine angle | Knee valgus, forward lean |
-| Push-up | Elbow angle, hip sag, elbow flare | Hip sag, elbow flare |
-| Deadlift | Spine angle, knee angle, lockout | Lumbar rounding, hyperextension |
+| Exercise | Key Metrics                          | Risk Flags                      |
+| -------- | ------------------------------------ | ------------------------------- |
+| Squat    | Knee angle, knee valgus, spine angle | Knee valgus, forward lean       |
+| Push-up  | Elbow angle, hip sag, elbow flare    | Hip sag, elbow flare            |
+| Deadlift | Spine angle, knee angle, lockout     | Lumbar rounding, hyperextension |
 
 ## Scoring
 
@@ -95,32 +67,3 @@ Score bands:
 - 75-89: Good
 - 55-74: Needs Work
 - Below 55: High Risk
-
-## Verification
-
-Run backend tests:
-
-```bash
-backend\venv\Scripts\python.exe -m pytest backend\tests
-```
-
-Run frontend utility tests:
-
-```bash
-cd frontend
-npm test
-```
-
-Build frontend:
-
-```bash
-cd frontend
-npm run build
-```
-
-## Deferred Integrations
-
-- Supabase Auth and PostgreSQL session storage
-- Claude-powered coaching summaries
-- Production-grade auth token verification
-- Deployment configuration and monitoring
