@@ -15,11 +15,14 @@ export class RepCounter {
   getThresholds() {
     switch (this.exercise) {
       case 'squat':
+      case 'lunge':
         return { downThreshold: 110, upThreshold: 150 } // knee angle
       case 'pushup':
         return { downThreshold: 90, upThreshold: 140 } // elbow angle
       case 'deadlift':
         return { downThreshold: 80, upThreshold: 140 } // hip angle (via knee proxy)
+      case 'plank':
+        return { downThreshold: 0, upThreshold: 360 } // No rep counting for isometric plank
       default:
         return { downThreshold: 100, upThreshold: 150 }
     }
@@ -29,9 +32,12 @@ export class RepCounter {
   getTrackingAngle(angles) {
     if (!angles) return null
     switch (this.exercise) {
-      case 'squat': return angles.kneeAngle
+      case 'squat':
+      case 'lunge':
+        return angles.kneeAngle
       case 'pushup': return angles.elbowAngle
       case 'deadlift': return angles.kneeAngle
+      case 'plank': return 180 // constant angle so reps stay 0
       default: return null
     }
   }

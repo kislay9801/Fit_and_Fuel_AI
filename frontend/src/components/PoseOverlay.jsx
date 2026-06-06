@@ -31,6 +31,8 @@ export default function PoseOverlay({
       case 'squat': return getSquatAngles(landmarks)
       case 'pushup': return getPushupAngles(landmarks)
       case 'deadlift': return getDeadliftAngles(landmarks)
+      case 'lunge': return getSquatAngles(landmarks)
+      case 'plank': return getPushupAngles(landmarks)
       default: return null
     }
   }, [exercise])

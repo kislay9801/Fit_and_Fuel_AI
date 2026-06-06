@@ -268,6 +268,48 @@ export function getScoreBand(score) {
   return { label: 'High Risk', emoji: '🔴', color: '#EF4444', bg: 'rgba(239,68,68,0.15)' }
 }
 
+// ─── LUNGE SCORING ──────────────────────────────────────────────────────────
+export function scoreLunge(angles) {
+  const res = scoreSquat(angles)
+  if (res.isIdle) {
+    return {
+      ...res,
+      feedback: ['Step forward and bend your knees to start the lunge analysis'],
+    }
+  }
+  const updatedFeedback = res.feedback.map(f => {
+    let text = f.replace(/squat/gi, 'lunge')
+    text = text.replace(/DRIVE KNEES OUT/g, 'KEEP KNEE ALIGNED')
+    return text
+  })
+  return {
+    ...res,
+    feedback: updatedFeedback,
+  }
+}
+
+// ─── PLANK SCORING ──────────────────────────────────────────────────────────
+export function scorePlank(angles) {
+  const res = scorePushup(angles)
+  if (res.isIdle) {
+    return {
+      ...res,
+      feedback: ['Get into a plank position to begin the analysis'],
+    }
+  }
+  const updatedFeedback = res.feedback.map(f => {
+    let text = f.replace(/push-up/gi, 'plank')
+    text = text.replace(/pushup/gi, 'plank')
+    text = text.replace(/Lower your chest more — aim for upper arms parallel to floor/g, 'Keep your elbows bent at 90 degrees under shoulders')
+    text = text.replace(/Much more depth needed — barely bending your elbows/g, 'Keep elbows bent under shoulders')
+    return text
+  })
+  return {
+    ...res,
+    feedback: updatedFeedback,
+  }
+}
+
 // ─── DISPATCHER ────────────────────────────────────────────────────────────
 
 export function scoreExercise(exercise, angles) {
@@ -275,6 +317,8 @@ export function scoreExercise(exercise, angles) {
     case 'squat':    return scoreSquat(angles)
     case 'pushup':   return scorePushup(angles)
     case 'deadlift': return scoreDeadlift(angles)
+    case 'lunge':    return scoreLunge(angles)
+    case 'plank':    return scorePlank(angles)
     default:         return { total: 0, breakdown: {}, feedback: [], isIdle: true }
   }
 }

@@ -34,7 +34,7 @@ const exercises = [
     img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCELdcUuU5btONMTHLmUm9FlcdkqDRS7Yg5Ev3zmUGaQp8QKomOHeQL0QMS2JWgE3FcvCY9ZJH5nBB1y1vAQIKfcN-oZ9EZ0KgsoBsx-AzreX4AXRfsybLG5TOYxk67RZ66C3oyBnk0Bd3NWSfJu4DrwHMY-y3-5AeChP-7q_WzwrVozR2YaJTv9ICfLDPC_nXjYPYy7330ZSNvyU0NUGwLlHZniGQgh7LPGcu029xx-bqA29gHmooO5do3IwF1dLWF8xD097iGDoo',
   },
   {
-    id: null,
+    id: 'lunge',
     title: 'Forward Lunge',
     tag: 'Injury Prevention',
     icon: ShieldCheck,
@@ -44,7 +44,7 @@ const exercises = [
     img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBb3Son-hBo3M8j4WtE5lJBLwzuhMhPELdpE9fB__FrngJFSLHJVdrPhQ6PqMOUlVTud8ui09pSirVKXzfAh7cAv0EEHd4z6JYnDHsBax3RA0fYhskNtojN6LT4kPyAuF4YwJgbJoaJB_jbs6RoSCnVW_OeoCDR-Ru3gDEGjjGl1iLaiMHEusK5l0Y6mj-jzWkVHb7RcK7dOvSlAFxywyj4AMKkXJ8L2RITu2qkwSRsi0_pPioDOM_jxIIjXUrXI4x0_AbzReNO1Mw',
   },
   {
-    id: null,
+    id: 'plank',
     title: 'Forearm Plank',
     tag: 'Strength',
     icon: Dumbbell,

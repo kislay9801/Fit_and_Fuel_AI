@@ -85,6 +85,19 @@ export function detectRisks(angles, exercise) {
     }
   }
 
+  if (exercise === 'lunge') {
+    const squatRisks = detectRisks(angles, 'squat')
+    return squatRisks.map(r => ({
+      ...r,
+      label: r.label.replace(/Squat/g, 'Lunge'),
+    }))
+  }
+
+  if (exercise === 'plank') {
+    const pushupRisks = detectRisks(angles, 'pushup')
+    return pushupRisks.filter(r => r.id !== 'elbow_flare')
+  }
+
   return risks
 }
 

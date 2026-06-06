@@ -29,6 +29,8 @@ export default function Dashboard({ user }) {
   const [loading, setLoading] = useState(true)
   const [showNotifs, setShowNotifs] = useState(false)
 
+  const hasSessions = !loading && stats && stats.totalSessions > 0
+
   useEffect(() => {
     if (!user?.uid) return
     let cancelled = false
@@ -165,23 +167,30 @@ export default function Dashboard({ user }) {
               <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                 {[0,1,2].map(i => <div key={i} className="border-t border-slate-100 w-full" />)}
               </div>
-              {/* Use actual recent session scores or static placeholders */}
-              {(recent.length >= 6 ? recent.slice(0, 6).reverse() : [
-                {score:72},{score:78},{score:82},{score:68},{score:88},{score:92}
-              ]).map((s, i) => {
-                const pct = Math.round(((s.score ?? s.form_score ?? 72) / 100) * 100)
-                return (
-                  <div key={i} className="relative group w-[10%] flex flex-col justify-end h-full">
-                    <div className={`w-full rounded-t-md transition-colors duration-300 ${i === 5 ? 'bg-blue-600' : 'bg-slate-200 hover:bg-slate-300'}`} style={{ height: `${pct}%` }}>
-                      <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap shadow-lg">
-                        {pct}
-                        {/* Little triangle arrow */}
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+              
+              {!loading && !hasSessions ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-sm font-semibold">
+                  <span>No data available</span>
+                  <span className="text-xs font-normal mt-1">Complete sessions to view form trend</span>
+                </div>
+              ) : (
+                (recent.length >= 6 ? recent.slice(0, 6).reverse() : [
+                  {score:72},{score:78},{score:82},{score:68},{score:88},{score:92}
+                ]).map((s, i) => {
+                  const pct = Math.round(((s.score ?? s.form_score ?? 72) / 100) * 100)
+                  return (
+                    <div key={i} className="relative group w-[10%] flex flex-col justify-end h-full">
+                      <div className={`w-full rounded-t-md transition-colors duration-300 ${i === 5 ? 'bg-blue-600' : 'bg-slate-200 hover:bg-slate-300'}`} style={{ height: `${pct}%` }}>
+                        <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap shadow-lg">
+                          {pct}
+                          {/* Little triangle arrow */}
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })
+              )}
             </div>
             <div className="flex justify-between mt-3 text-slate-400 text-xs font-bold px-2">
               {['MON','TUE','WED','THU','FRI','SAT'].map(d => <span key={d}>{d}</span>)}
@@ -193,14 +202,14 @@ export default function Dashboard({ user }) {
             <h4 className="font-bold text-lg text-slate-900 tracking-tight mb-6">Risk Reduction</h4>
             <div className="space-y-5 flex-1">
               {[
-                { label: 'Knee Valgus',   pct: 75, delta: '-25%', color: 'bg-emerald-500' },
-                { label: 'Pelvic Tilt',   pct: 82, delta: '-18%', color: 'bg-emerald-500' },
-                { label: 'Spinal Flexion',pct: 95, delta:  '-5%', color: 'bg-amber-500' },
+                { label: 'Knee Valgus',   pct: hasSessions ? 75 : 0, delta: hasSessions ? '-25%' : '—', color: 'bg-emerald-500' },
+                { label: 'Pelvic Tilt',   pct: hasSessions ? 82 : 0, delta: hasSessions ? '-18%' : '—', color: 'bg-emerald-500' },
+                { label: 'Spinal Flexion',pct: hasSessions ? 95 : 0, delta: hasSessions ? '-5%'  : '—', color: 'bg-amber-500' },
               ].map(({ label, pct, delta, color }) => (
                 <div key={label}>
                   <div className="flex justify-between mb-2">
                     <span className="text-sm font-semibold text-slate-700">{label}</span>
-                    <span className={`text-xs font-bold ${color.replace('bg-', 'text-')}`}>{delta}</span>
+                    <span className={`text-xs font-bold ${hasSessions ? color.replace('bg-', 'text-') : 'text-slate-400'}`}>{delta}</span>
                   </div>
                   <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
                     <div className={`h-full rounded-full ${color}`} style={{ width: `${pct}%` }} />
@@ -208,10 +217,14 @@ export default function Dashboard({ user }) {
                 </div>
               ))}
             </div>
-            <div className="mt-8 p-4 bg-emerald-50 rounded-xl border border-emerald-100">
+            <div className={`mt-8 p-4 rounded-xl border ${hasSessions ? 'bg-emerald-50 border-emerald-100' : 'bg-slate-50 border-slate-200'}`}>
               <div className="flex items-start gap-3">
-                <ShieldCheck className="w-5 h-5 text-emerald-600 flex-shrink-0 mt-0.5" />
-                <p className="text-xs text-emerald-800 font-medium leading-relaxed">Your biomechanics show significant improvement in knee stability. Risk of ACL strain is now "Low".</p>
+                <ShieldCheck className={`w-5 h-5 flex-shrink-0 mt-0.5 ${hasSessions ? 'text-emerald-600' : 'text-slate-400'}`} />
+                <p className={`text-xs font-medium leading-relaxed ${hasSessions ? 'text-emerald-800' : 'text-slate-500'}`}>
+                  {hasSessions 
+                    ? 'Your biomechanics show significant improvement in knee stability. Risk of ACL strain is now "Low".'
+                    : 'Complete your first session to analyze injury risk and receive biomechanics alignment feedback.'}
+                </p>
               </div>
             </div>
           </div>
@@ -295,8 +308,14 @@ export default function Dashboard({ user }) {
             </div>
             <div className="relative z-10 p-6 h-full flex flex-col justify-end text-white">
               <span className="bg-blue-600 text-white text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded border border-blue-500 w-fit mb-3">AI Recommendation</span>
-              <h4 className="font-bold text-2xl mb-2 tracking-tight">Improve Hip Mobility</h4>
-              <p className="text-sm text-slate-200 mb-6 leading-relaxed">Based on your recent sessions, adding 10 min of hip openers will reduce your Pelvic Tilt score by ~12%.</p>
+              <h4 className="font-bold text-2xl mb-2 tracking-tight">
+                {hasSessions ? 'Improve Hip Mobility' : 'Start Your First Session'}
+              </h4>
+              <p className="text-sm text-slate-200 mb-6 leading-relaxed">
+                {hasSessions
+                  ? 'Based on your recent sessions, adding 10 min of hip openers will reduce your Pelvic Tilt score by ~12%.'
+                  : 'Start training with real-time pose tracking to receive tailored exercise form analysis and AI coaching.'}
+              </p>
               <button
                 onClick={() => navigate('/exercises')}
                 className="w-full bg-white text-slate-900 font-bold py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-slate-100 active:scale-[0.98] transition-all shadow-md"
