@@ -13,10 +13,6 @@ This version intentionally does not use Supabase or Claude. Those integrations a
 - Authentication: mock localStorage auth
 - Coaching: local template-based mock summaries
 
-## Quick Start
-
-Live Demo: https://your-project.vercel.app
-
 ## Core Flow
 
 1. Sign in with mock auth using any email and a password of at least 6 characters.
