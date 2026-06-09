@@ -10,6 +10,11 @@ const ExerciseSelect = lazy(() => import('./pages/ExerciseSelect'))
 const Session      = lazy(() => import('./pages/Session'))
 const History      = lazy(() => import('./pages/History'))
 
+const Nutrition    = lazy(() => import('./pages/services/Nutrition'))
+const Injuries     = lazy(() => import('./pages/services/Injuries'))
+const Warmups      = lazy(() => import('./pages/services/Warmups'))
+const Athletes     = lazy(() => import('./pages/services/Athletes'))
+
 function AppLoading() {
   return (
     <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9ff' }}>
@@ -87,6 +92,27 @@ export default function App() {
           <Route path="/history" element={
             <ProtectedRoute user={user}>
               <Layout user={user}><History user={user} /></Layout>
+            </ProtectedRoute>
+          } />
+          
+          <Route path="/services/nutrition" element={
+            <ProtectedRoute user={user}>
+              <Layout user={user}><Nutrition /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/services/injuries" element={
+            <ProtectedRoute user={user}>
+              <Layout user={user}><Injuries /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/services/warmups" element={
+            <ProtectedRoute user={user}>
+              <Layout user={user}><Warmups /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/services/athletes" element={
+            <ProtectedRoute user={user}>
+              <Layout user={user}><Athletes /></Layout>
             </ProtectedRoute>
           } />
 

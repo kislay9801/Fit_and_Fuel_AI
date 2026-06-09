@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { signOutUser } from '../firebase/auth'
-import { LayoutDashboard, Dumbbell, History, LogOut, Zap } from 'lucide-react'
+import { LayoutDashboard, Dumbbell, History, LogOut, Zap, HeartPulse, ChevronDown } from 'lucide-react'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -10,6 +11,8 @@ const navItems = [
 
 export default function Sidebar({ user }) {
   const location = useLocation()
+  const [servicesOpen, setServicesOpen] = useState(false)
+  const isServicesActive = location.pathname.startsWith('/services')
 
   const handleSignOut = async () => {
     await signOutUser()
@@ -47,6 +50,50 @@ export default function Sidebar({ user }) {
             </Link>
           )
         })}
+
+        {/* Services Dropdown */}
+        <div>
+          <button
+            onClick={() => setServicesOpen(!servicesOpen)}
+            className={`w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all group ${
+              isServicesActive 
+                ? 'bg-blue-50 text-blue-700' 
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <HeartPulse className={`w-5 h-5 ${isServicesActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
+              Services
+            </div>
+            <ChevronDown className={`w-4 h-4 transition-transform ${servicesOpen ? 'rotate-180' : ''} ${isServicesActive ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
+          </button>
+          
+          {servicesOpen && (
+            <div className="flex flex-col gap-1 mt-1 pl-11 pr-2">
+              {[
+                { to: '/services/nutrition', label: 'Nutritional Info' },
+                { to: '/services/injuries', label: 'Injury Recovery' },
+                { to: '/services/warmups', label: 'Warm-Up Exercises' },
+                { to: '/services/athletes', label: 'Athletes & Quotes' }
+              ].map(sub => {
+                const subActive = location.pathname === sub.to
+                return (
+                  <Link
+                    key={sub.to}
+                    to={sub.to}
+                    className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      subActive
+                        ? 'bg-blue-50/50 text-blue-700'
+                        : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                    }`}
+                  >
+                    {sub.label}
+                  </Link>
+                )
+              })}
+            </div>
+          )}
+        </div>
       </nav>
 
       {/* Footer */}
