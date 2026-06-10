@@ -44,7 +44,7 @@ export default function AICoachChat({ sessions, onClose }) {
         session_context: contextSessions
       }
 
-      const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+      const apiBase = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:8000')
       const url = `${apiBase}/api/coaching/chat`
       const response = await fetch(url, {
         method: 'POST',

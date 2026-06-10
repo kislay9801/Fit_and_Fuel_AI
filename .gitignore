@@ -47,6 +47,17 @@ build/Release
 # Dependency directories
 node_modules/
 
+# Python virtualenv & caches (should never be committed)
+venv/
+backend/venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Build output
+dist/
+frontend/dist/
+
 # Optional npm cache directory
 .npm
 

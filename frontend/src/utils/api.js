@@ -3,7 +3,9 @@
  * Base URL from VITE_API_URL env var, defaults to localhost:8000.
  */
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+// In production the API is served from the same origin (Vercel functions under
+// /api), so default to a relative base. Locally, default to the dev backend.
+const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:8000')
 
 async function request(path, options = {}, userId = null) {
   const url = `${BASE_URL}${path}`
