@@ -15,14 +15,25 @@ export class RepCounter {
   getThresholds() {
     switch (this.exercise) {
       case 'squat':
-      case 'lunge':
         return { downThreshold: 110, upThreshold: 150 } // knee angle
+      case 'lunge':
+        return { downThreshold: 110, upThreshold: 150 } // front knee angle
       case 'pushup':
         return { downThreshold: 90, upThreshold: 140 } // elbow angle
       case 'deadlift':
-        return { downThreshold: 80, upThreshold: 140 } // hip angle (via knee proxy)
+        return { downThreshold: 130, upThreshold: 160 } // knee angle: ~130° at bottom of conventional lift, ~160° at lockout
       case 'plank':
-        return { downThreshold: 0, upThreshold: 360 } // No rep counting for isometric plank
+        return { downThreshold: 0, upThreshold: 360 } // isometric — no reps
+      case 'jumpLanding':
+        return { downThreshold: 120, upThreshold: 155 } // bilateral knee avg
+      case 'highKnees':
+        return { downThreshold: 100, upThreshold: 150 } // hip-flexion angle of raised knee
+      case 'sumoSquat':
+        return { downThreshold: 100, upThreshold: 150 } // bilateral knee avg
+      case 'buttKicks':
+        return { downThreshold: 100, upThreshold: 140 } // most-flexed knee angle
+      case 'pogoJump':
+        return { downThreshold: 155, upThreshold: 168 } // brief knee bend on landing
       default:
         return { downThreshold: 100, upThreshold: 150 }
     }
@@ -34,11 +45,16 @@ export class RepCounter {
     switch (this.exercise) {
       case 'squat':
       case 'lunge':
+      case 'sumoSquat':
+      case 'jumpLanding':
+      case 'pogoJump':
         return angles.kneeAngle
-      case 'pushup': return angles.elbowAngle
-      case 'deadlift': return angles.kneeAngle
-      case 'plank': return 180 // constant angle so reps stay 0
-      default: return null
+      case 'pushup':      return angles.elbowAngle
+      case 'deadlift':    return angles.kneeAngle
+      case 'plank':       return 180 // constant — reps stay 0
+      case 'highKnees':   return angles.hipFlexionAngle ?? angles.kneeAngle
+      case 'buttKicks':   return angles.bentKneeAngle ?? angles.kneeAngle
+      default:            return null
     }
   }
 

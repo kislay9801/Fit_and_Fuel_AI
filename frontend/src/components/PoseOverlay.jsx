@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react'
-import { getSquatAngles, getPushupAngles, getDeadliftAngles } from '../utils/poseAngles'
+import { getExerciseAngles } from '../utils/poseAngles'
 import { AnglesSmoother } from '../utils/smoothing'
 import { RepCounter } from '../utils/repCounting'
 import { createSampleTimes } from '../utils/videoSampling'
@@ -27,14 +27,7 @@ export default function PoseOverlay({
   const drawingUtilsRef = useRef(null)
 
   const getAngles = useCallback((landmarks) => {
-    switch (exercise) {
-      case 'squat': return getSquatAngles(landmarks)
-      case 'pushup': return getPushupAngles(landmarks)
-      case 'deadlift': return getDeadliftAngles(landmarks)
-      case 'lunge': return getSquatAngles(landmarks)
-      case 'plank': return getPushupAngles(landmarks)
-      default: return null
-    }
+    return getExerciseAngles(exercise, landmarks)
   }, [exercise])
 
   useEffect(() => {

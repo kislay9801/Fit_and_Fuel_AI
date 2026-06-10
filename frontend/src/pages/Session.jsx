@@ -13,8 +13,16 @@ import { scoreExercise } from '../utils/formScoring'
 import { detectRisks } from '../utils/riskDetection'
 import { Camera as CameraIcon, Upload, Square, ChevronLeft, AlertCircle, Dumbbell, Activity, ShieldCheck, Flame } from 'lucide-react'
 
-const exerciseNames = { squat: 'Squat', pushup: 'Push-up', deadlift: 'Deadlift', lunge: 'Forward Lunge', plank: 'Forearm Plank' }
-const exerciseIcons = { squat: Dumbbell, pushup: Activity, deadlift: Flame, lunge: ShieldCheck, plank: Dumbbell }
+const exerciseNames = {
+  squat: 'Squat', pushup: 'Push-up', deadlift: 'Deadlift', lunge: 'Forward Lunge', plank: 'Forearm Plank',
+  jumpLanding: 'Jump Landing', highKnees: 'High Knees', sumoSquat: 'Sumo Squat to Stand',
+  buttKicks: 'Butt Kicks', pogoJump: 'Pogo Jumps',
+}
+const exerciseIcons = {
+  squat: Dumbbell, pushup: Activity, deadlift: Flame, lunge: ShieldCheck, plank: Dumbbell,
+  jumpLanding: ShieldCheck, highKnees: Activity, sumoSquat: Dumbbell,
+  buttKicks: Activity, pogoJump: Activity,
+}
 
 export default function Session({ user }) {
   const { exercise } = useParams()
