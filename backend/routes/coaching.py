@@ -47,6 +47,48 @@ OPENERS = {
         "needs_improvement":  "Your deadlift fundamentals are there, but spine neutrality needs work — especially as fatigue sets in.",
         "high_risk":          "Serious spinal rounding was detected in your deadlift. This is the primary cause of disc injuries — reduce weight immediately.",
     },
+    "lunge": {
+        "excellent":          "Excellent lunge control — your front-knee depth and torso position were dialed in throughout.",
+        "good":               "Solid lunge session. Your depth was consistent and your balance held up well on most reps.",
+        "needs_improvement":  "Your lunge pattern is coming along, but front-knee depth and stability need more consistency.",
+        "high_risk":          "Your front knee is caving and balance is shaky — fix alignment before adding load, this is an ACL risk.",
+    },
+    "plank": {
+        "excellent":          "Rock-solid plank — your body held a perfectly rigid line from head to heels.",
+        "good":               "Good plank hold. Your alignment was strong for most of the hold with only minor hip drift.",
+        "needs_improvement":  "You're holding the position, but your hips are drifting out of line — core endurance is the next focus.",
+        "high_risk":          "Your hips are sagging significantly, which loads your lower back. Shorten the hold and prioritise a rigid line.",
+    },
+    "jumpLanding": {
+        "excellent":          "Outstanding landing mechanics — soft, deep, symmetrical knee bend that absorbs impact beautifully.",
+        "good":               "Good landing control. You're absorbing impact well, with only small asymmetries between legs.",
+        "needs_improvement":  "Your landings need more knee bend to absorb force — stiff landings transfer stress to your joints.",
+        "high_risk":          "Stiff or knee-cave landings detected — this is the single biggest ACL-tear risk factor. Address it before plyometrics.",
+    },
+    "highKnees": {
+        "excellent":          "Great high-knees work — strong knee drive above hip level with a tall, stable torso.",
+        "good":               "Good high-knees session. Your knee height was solid with mostly upright posture.",
+        "needs_improvement":  "Drive those knees higher — you're not consistently reaching hip level, and your torso is drifting forward.",
+        "high_risk":          "Knee height is low and you're leaning back to compensate — reset your posture and focus on quality drive.",
+    },
+    "sumoSquat": {
+        "excellent":          "Excellent sumo squat — wide stance, deep position, and knees tracking right over the toes.",
+        "good":               "Good sumo squat session. Your depth and stance were solid on most reps.",
+        "needs_improvement":  "Your sumo squat needs a wider stance and more depth to open the hips fully.",
+        "high_risk":          "Your knees are caving inward on the sumo squat — drive them out hard to protect the joint.",
+    },
+    "buttKicks": {
+        "excellent":          "Crisp butt kicks — full heel-to-glute range with a tall, controlled torso.",
+        "good":               "Good butt kicks. Your range of motion was solid with mostly upright posture.",
+        "needs_improvement":  "Snap those heels higher toward your glutes — your range is a bit short right now.",
+        "high_risk":          "Range of motion is limited and your torso is leaning — slow down and focus on a full, controlled kick.",
+    },
+    "pogoJump": {
+        "excellent":          "Perfect pogo mechanics — stiff, springy ankles with minimal knee bend and even loading.",
+        "good":               "Good pogo jumps. Your legs stayed mostly stiff with quick, reactive ground contact.",
+        "needs_improvement":  "You're bending your knees too much — pogo jumps should bounce off stiff ankles, not deep squats.",
+        "high_risk":          "Excessive knee bend and uneven landings detected — reset to small, stiff, ankle-driven hops.",
+    },
 }
 
 # ── Score context ──────────────────────────────────────────────────────────────
@@ -101,6 +143,36 @@ DRILLS = {
         "If you're leaning back, you're probably compensating for weak glutes — "
         "add 3×12 hip thrusts to your accessory work."
     ),
+    "stiff_landing": (
+        "Your biggest fix — STIFF LANDING: "
+        "You're landing with straight legs, sending impact straight into your knees and hips. "
+        "Practice 3×8 'stick the landing' drops from a low box — land softly, sink into a 70–90° knee bend, "
+        "and hold for 2 seconds. Cue: 'land like a ninja, quiet feet'."
+    ),
+    "valgus_landing": (
+        "Your biggest fix — KNEE CAVE ON LANDING: "
+        "Your knees collapse inward when you land — the #1 mechanism of ACL tears. "
+        "Do 3×12 banded lateral walks and 3×10 single-leg box step-downs focusing on keeping the kneecap "
+        "pointed over your second toe. Cue on every landing: 'knees out, drive the floor apart'."
+    ),
+    "asymmetric_landing": (
+        "Your biggest fix — UNEVEN LANDING: "
+        "One leg is absorbing more force than the other. Add 3×8 single-leg Romanian deadlifts and "
+        "single-leg squats per side to even out the strength imbalance. Film from the front to confirm "
+        "both knees bend equally on landing."
+    ),
+    "knee_cave_sumo": (
+        "Your biggest fix — KNEES CAVING (SUMO): "
+        "Your knees drift inward as you stand from the sumo squat. Loop a band above your knees and "
+        "push out against it for 3×12 reps. Cue: 'screw your feet into the floor and shove the knees out' "
+        "throughout the whole rep, especially as you drive up."
+    ),
+    "excess_knee_bend": (
+        "Your biggest fix — TOO MUCH KNEE BEND (POGO): "
+        "Pogo jumps are ankle-driven — your knees should stay almost straight and springy. "
+        "Practice 3×20 pogo hops in place focusing on snapping off the balls of your feet with stiff legs. "
+        "Cue: 'stiff springs, not squats' — minimise ground contact time."
+    ),
 }
 
 # ── Generic improvement tips ───────────────────────────────────────────────────
@@ -120,6 +192,41 @@ GENERIC_TIPS = {
         "Before each set, take a full breath into your belly (not your chest), brace 360°, then pull.",
         "Use the 'leg press the floor' cue — imagine you're pushing the ground away rather than pulling the bar up.",
         "Video your setup from the side — hips should be above knees, shoulders above the bar, eyes forward.",
+    ],
+    "lunge": [
+        "Step into a 2-second pause at the bottom of each lunge to build single-leg balance and control.",
+        "Keep ~90% of your weight through the front heel — this protects the knee and loads the glutes.",
+        "Film from the front to confirm your front knee tracks over your toes and doesn't drift inward.",
+    ],
+    "plank": [
+        "Build endurance with intervals — 3×30s holds with perfect form beat one long sagging hold.",
+        "Squeeze your glutes and quads hard the whole time; a plank is an active full-body brace, not a rest.",
+        "Tuck your chin slightly and look at the floor just ahead of your hands to keep your neck neutral.",
+    ],
+    "jumpLanding": [
+        "Always land toe-to-heel and sink into the bend — think of your legs as shock absorbers.",
+        "Start with drop landings from a low box before progressing to jumps for height or distance.",
+        "Film from the front: both knees should bend equally and stay stacked over your feet.",
+    ],
+    "highKnees": [
+        "Pump your arms in sync with your knees — strong arm drive lifts the knees higher with less effort.",
+        "Stay on the balls of your feet and keep contact times short and snappy.",
+        "Brace your core and stand tall — leaning back to lift the knees just stresses your lower back.",
+    ],
+    "sumoSquat": [
+        "Point your toes out 30–45° and track your knees in the same direction as your feet.",
+        "Add a 2-second pause at the bottom to build hip and groin mobility through the full range.",
+        "Drive your knees out and your hips down — think of opening the floor with your feet.",
+    ],
+    "buttKicks": [
+        "Keep the movement quick and light — this is a dynamic warm-up, prioritise speed over force.",
+        "Stay tall and let the heels flick up from the knee; avoid leaning forward to reach your glutes.",
+        "Use it as a pre-run drill to fire up the hamstrings and raise your cadence.",
+    ],
+    "pogoJump": [
+        "Imagine the floor is hot — minimise ground contact time and bounce straight back up.",
+        "Keep your ankles stiff and reactive; the power comes from your calves, not your knees.",
+        "Stay tall with a braced core and let the rebound do the work — small, fast, springy hops.",
     ],
 }
 
@@ -153,7 +260,7 @@ CLOSERS = [
 
 
 def _fallback_coaching_summary(req: CoachingRequest) -> str:
-    exercise = req.exercise.lower()
+    exercise = req.exercise  # camelCase IDs (e.g. 'jumpLanding') are the dict keys — do not lowercase
     avg = req.avg_form_score
     best = req.best_score or avg
     reps = req.reps_detected or 0

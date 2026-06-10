@@ -9,9 +9,9 @@ import FeedbackPanel from '../components/FeedbackPanel'
 import RiskAlerts from '../components/RiskAlerts'
 import CoachingSummary from '../components/CoachingSummary'
 import RepCounter from '../components/RepCounter'
-import { scoreExercise } from '../utils/formScoring'
+import { scoreExercise, isRepBased } from '../utils/formScoring'
 import { detectRisks } from '../utils/riskDetection'
-import { Camera as CameraIcon, Upload, Square, ChevronLeft, AlertCircle, Dumbbell, Activity, ShieldCheck, Flame } from 'lucide-react'
+import { Camera as CameraIcon, Upload, Square, ChevronLeft, AlertCircle, Dumbbell, Activity, ShieldCheck, Flame, Loader2 } from 'lucide-react'
 
 const exerciseNames = {
   squat: 'Squat', pushup: 'Push-up', deadlift: 'Deadlift', lunge: 'Forward Lunge', plank: 'Forearm Plank',
@@ -51,7 +51,8 @@ export default function Session({ user }) {
   const scoringTimesRef = useRef([])
 
   // Session history refs
-  const scoresRef = useRef([])
+  const scoresRef = useRef([])        // every non-idle frame score (fallback aggregate)
+  const repScoresRef = useRef([])     // one score per completed rep, taken at the rep's peak
   const issuesRef = useRef(new Set())
   const lastFeedbackTime = useRef(0)
   const FEEDBACK_DEBOUNCE_MS = 1000
@@ -100,6 +101,16 @@ export default function Session({ user }) {
     if (phase) setRepPhase(phase)
   }, [])
 
+  // Each completed rep is scored at its PEAK (deepest) frame — this is the
+  // accurate per-rep grade. Averaging these gives the real session score,
+  // instead of averaging every transitional frame (which produces noise).
+  const handleRepComplete = useCallback((peakAngles) => {
+    const result = scoreExercise(exercise, peakAngles)
+    if (!result.isIdle) {
+      repScoresRef.current.push(result.total)
+    }
+  }, [exercise])
+
   const handleVideoReady = useCallback((el) => {
     setVideoElement(el)
     setIsActive(true)
@@ -133,6 +144,7 @@ export default function Session({ user }) {
     setUploadProgress(0)
     setSessionState('loading_model')
     scoresRef.current = []
+    repScoresRef.current = []
     issuesRef.current = new Set()
     scoringTimesRef.current = []
     setUploadAnalysis({ runId: Date.now(), preset })
@@ -173,8 +185,8 @@ export default function Session({ user }) {
     if (isSaving) return
     setIsActive(false)
 
-    const scores = scoresRef.current
-    if (scores.length === 0) {
+    const frameScores = scoresRef.current
+    if (frameScores.length === 0) {
       setAnalysisMessage('No usable pose frames were detected. Try a clearer clip with your full body visible.')
       if (mode === 'camera') {
         setSessionState('analyzing')
@@ -185,6 +197,12 @@ export default function Session({ user }) {
       }
       return
     }
+
+    // Prefer per-rep peak scores (accurate): each rep is graded at its deepest
+    // position. Fall back to per-frame averaging for isometric holds (plank) or
+    // when no full rep was detected.
+    const repScores = repScoresRef.current
+    const scores = (isRepBased(exercise) && repScores.length > 0) ? repScores : frameScores
 
     const avgScore   = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)
     const bestScore  = Math.round(Math.max(...scores))
@@ -265,6 +283,7 @@ export default function Session({ user }) {
     setDebugMetrics({})
     scoringTimesRef.current = []
     scoresRef.current = []
+    repScoresRef.current = []
     issuesRef.current = new Set()
     setSessionEnded(false)
     setSessionData(null)
@@ -428,6 +447,7 @@ export default function Session({ user }) {
                         exercise={exercise}
                         onAngles={handleAngles}
                         onReps={handleReps}
+                        onRepComplete={handleRepComplete}
                         isActive={isActive}
                         fps={15}
                         analysisMode="live"
@@ -450,6 +470,7 @@ export default function Session({ user }) {
                         exercise={exercise}
                         onAngles={handleAngles}
                         onReps={handleReps}
+                        onRepComplete={handleRepComplete}
                         isActive={isActive}
                         fps={12}
                         analysisMode="upload"

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getDashboardStats, getRecentSessions } from '../firebase/firestore'
-import { Bell, Plus, TrendingUp, Award, ShieldCheck, ArrowRight, Activity, CalendarDays } from 'lucide-react'
+import { Plus, TrendingUp, Award, ShieldCheck, ArrowRight, Activity, CalendarDays } from 'lucide-react'
 
 const exerciseEmoji = { squat: '🏋️', pushup: '💪', deadlift: '🔥' }
 
@@ -27,7 +27,6 @@ export default function Dashboard({ user }) {
   const [stats,   setStats]   = useState(null)
   const [recent,  setRecent]  = useState([])
   const [loading, setLoading] = useState(true)
-  const [showNotifs, setShowNotifs] = useState(false)
 
   const hasSessions = !loading && stats && stats.totalSessions > 0
 
@@ -58,27 +57,6 @@ export default function Dashboard({ user }) {
           Performance Dashboard
         </h2>
         <div className="flex items-center gap-6">
-          <div className="relative">
-            <button 
-              onClick={() => setShowNotifs(!showNotifs)}
-              className="relative p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all"
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-            </button>
-            
-            {showNotifs && (
-              <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-slate-200 py-3 z-50">
-                <div className="px-4 pb-2 border-b border-slate-100 mb-2">
-                  <h4 className="font-bold text-slate-900">Notifications</h4>
-                </div>
-                <div className="px-4 py-3 text-sm text-slate-500 text-center">
-                  You're all caught up!
-                </div>
-              </div>
-            )}
-          </div>
-          <div className="h-8 w-px bg-slate-200" />
           <button
             onClick={() => navigate('/exercises')}
             className="bg-blue-600 text-white text-sm font-bold px-4 py-2.5 rounded-lg hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center gap-1 shadow-sm"

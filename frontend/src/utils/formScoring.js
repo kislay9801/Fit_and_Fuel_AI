@@ -764,3 +764,11 @@ export function scoreExercise(exercise, angles) {
     default:            return { total: 0, breakdown: {}, feedback: [], isIdle: true }
   }
 }
+
+/**
+ * True for exercises that count discrete reps — their final score should be the
+ * average of per-rep peak grades. Isometric holds (plank) are graded per frame.
+ */
+export function isRepBased(exercise) {
+  return exercise !== 'plank'
+}

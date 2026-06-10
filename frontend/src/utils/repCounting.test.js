@@ -24,4 +24,48 @@ describe('RepCounter', () => {
     counter.update({ elbowAngle: 155 })
     assert.equal(counter.getCount(), 1)
   })
+
+  it('captures the deepest frame of each rep as the peak', () => {
+    const counter = new RepCounter('squat')
+
+    counter.update({ kneeAngle: 160 })           // standing
+    counter.update({ kneeAngle: 120, depth: 'a' }) // descending
+    counter.update({ kneeAngle: 85, depth: 'b' })  // deepest
+    counter.update({ kneeAngle: 110, depth: 'c' }) // ascending
+    counter.update({ kneeAngle: 155, depth: 'd' }) // completes rep
+
+    const peak = counter.popCompletedRep()
+    assert.ok(peak, 'a completed rep peak should be available')
+    assert.equal(peak.kneeAngle, 85)             // the deepest frame
+    assert.equal(peak.depth, 'b')
+    // peak is consumed once
+    assert.equal(counter.popCompletedRep(), null)
+  })
+
+  it('counts pogo jumps from vertical bounce, not knee angle', () => {
+    const counter = new RepCounter('pogoJump')
+    // Knee stays nearly straight throughout (pogo) — only hipY oscillates.
+    // One full hop: ground (high y) -> apex (low y) -> ground (high y).
+    const hop = [0.60, 0.55, 0.50, 0.55, 0.60]
+    for (const hipY of hop) counter.update({ hipY, kneeAngle: 168 })
+    assert.equal(counter.getCount(), 1)
+
+    for (const hipY of hop) counter.update({ hipY, kneeAngle: 168 })
+    assert.equal(counter.getCount(), 2)
+  })
+
+  it('ignores vertical jitter below the amplitude threshold', () => {
+    const counter = new RepCounter('pogoJump')
+    // Tiny noise (< minAmplitude 0.012) should not count as a hop
+    const jitter = [0.600, 0.598, 0.600, 0.598, 0.600]
+    for (const hipY of jitter) counter.update({ hipY, kneeAngle: 170 })
+    assert.equal(counter.getCount(), 0)
+  })
+
+  it('reports no reps for an isometric plank', () => {
+    const counter = new RepCounter('plank')
+    counter.update({ hipSagAmount: 0.02 })
+    counter.update({ hipSagAmount: 0.03 })
+    assert.equal(counter.getCount(), 0)
+  })
 })

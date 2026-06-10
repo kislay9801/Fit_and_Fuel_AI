@@ -499,6 +499,7 @@ export function getPogoJumpAngles(landmarks) {
     rightKneeAngle,
     kneeAsymmetry,
     spineAngle,
+    hipY: midHip.y, // vertical position — drives bounce-based rep counting
   }
 }
 

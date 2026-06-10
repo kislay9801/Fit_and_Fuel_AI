@@ -10,6 +10,7 @@ export default function PoseOverlay({
   exercise,
   onAngles,
   onReps,
+  onRepComplete,
   isActive,
   fps = 15,
   analysisMode = 'live',
@@ -31,7 +32,10 @@ export default function PoseOverlay({
   }, [exercise])
 
   useEffect(() => {
-    smootherRef.current = new AnglesSmoother(5)
+    // Lighter smoothing window: a window of 5 flattens fast cyclic movements
+    // (high knees, butt kicks, pogo) so reps never register. 3 keeps jitter
+    // down while preserving the oscillation needed for rep detection.
+    smootherRef.current = new AnglesSmoother(3)
     repCounterRef.current = new RepCounter(exercise)
     return () => {
       smootherRef.current?.reset()
@@ -99,6 +103,8 @@ export default function PoseOverlay({
       if (smoothedAngles) {
         const reps = repCounterRef.current?.update(smoothedAngles) ?? 0
         onReps?.(reps, repCounterRef.current?.getPhase())
+        const completedPeak = repCounterRef.current?.popCompletedRep()
+        if (completedPeak) onRepComplete?.(completedPeak)
         onAngles?.(smoothedAngles)
       }
 
@@ -234,7 +240,7 @@ export default function PoseOverlay({
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current)
       poseServiceRef.current = null
     }
-  }, [videoElement, isActive, exercise, getAngles, onAngles, onReps, fps, analysisMode, onDebugUpdate, onUploadComplete])
+  }, [videoElement, isActive, exercise, getAngles, onAngles, onReps, onRepComplete, fps, analysisMode, onDebugUpdate, onUploadComplete])
 
   useEffect(() => {
     if (!videoElement || !isActive || analysisMode !== 'upload' || !uploadAnalysis?.runId) return
@@ -401,6 +407,8 @@ export default function PoseOverlay({
                 framesAccepted += 1
                 const currentReps = repCounterRef.current?.update(smoothedAngles) ?? 0
                 onReps?.(currentReps, repCounterRef.current?.getPhase())
+                const completedPeak = repCounterRef.current?.popCompletedRep()
+                if (completedPeak) onRepComplete?.(completedPeak)
                 onAngles?.(smoothedAngles)
               }
             }
@@ -505,7 +513,7 @@ export default function PoseOverlay({
     return () => {
       cancelled = true
     }
-  }, [videoElement, isActive, analysisMode, uploadAnalysis, onUploadProgress, onUploadComplete, onDebugUpdate, getAngles])
+  }, [videoElement, isActive, analysisMode, uploadAnalysis, onUploadProgress, onUploadComplete, onDebugUpdate, getAngles, onReps, onRepComplete, onAngles])
 
   return (
     <canvas
