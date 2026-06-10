@@ -246,6 +246,52 @@ async def get_coaching_summary(request: CoachingRequest):
     )
 
 
+def _local_chat_response(request: AICoachChatRequest) -> str:
+    """Fallback chat reply generated from session data — no API key required."""
+    sessions = request.session_context
+    msg = request.message.lower()
+
+    if not sessions:
+        return (
+            "I don't have any session data to work with yet. "
+            "Complete a workout first and I'll be able to give you personalised feedback!"
+        )
+
+    scores = [s.get('score', s.get('form_score', 0)) for s in sessions]
+    avg = sum(scores) / len(scores) if scores else 0
+    best = max(scores) if scores else 0
+    exercises = [s.get('exercise', '') for s in sessions]
+    most_common = max(set(exercises), key=exercises.count) if exercises else 'unknown'
+    all_issues = [i for s in sessions for i in s.get('issues', [])]
+    top_issue = max(set(all_issues), key=all_issues.count) if all_issues else None
+
+    if any(k in msg for k in ('progress', 'improving', 'getting better', 'trend')):
+        if avg >= 80:
+            return f"Your form is in great shape! Averaging {avg:.0f}/100 across your last {len(sessions)} sessions with a peak of {best:.0f}. Keep pushing the intensity."
+        elif avg >= 60:
+            return f"You're making steady progress — {avg:.0f}/100 average with a best of {best:.0f}. Consistency is your biggest lever right now."
+        else:
+            return f"You're putting in the reps — {avg:.0f}/100 average so far. Focus on the form cues during each set and the score will climb."
+
+    if any(k in msg for k in ('issue', 'problem', 'wrong', 'fix', 'improve')):
+        if top_issue:
+            drill = DRILLS.get(top_issue, f"Work on correcting your {top_issue.replace('_', ' ')} — it's the most frequent flag in your sessions.")
+            return f"Your most common issue is {top_issue.replace('_', ' ')}. {drill}"
+        return "No recurring issues detected across your sessions — nice work keeping form clean!"
+
+    if any(k in msg for k in ('exercise', 'workout', 'train', 'focus')):
+        return f"You've trained {most_common} most frequently. Your average score is {avg:.0f}/100. Mixing in complementary movements would round out your programme nicely."
+
+    if any(k in msg for k in ('score', 'form', 'rating')):
+        return f"Your average form score is {avg:.0f}/100 across {len(sessions)} sessions, with a personal best of {best:.0f}. {'Excellent consistency!' if avg >= 80 else 'Room to grow — focus on the basics each rep.'}"
+
+    return (
+        f"Based on your {len(sessions)} recent sessions, your average form score is {avg:.0f}/100. "
+        f"{'Great work — your form is very solid!' if avg >= 75 else 'Keep focusing on quality reps over quantity.'} "
+        "Ask me about your progress, common issues, or how to fix a specific problem and I can give you targeted advice."
+    )
+
+
 @router.post("/chat", response_model=AICoachChatResponse)
 async def chat_with_coach(request: AICoachChatRequest):
     """
@@ -253,41 +299,46 @@ async def chat_with_coach(request: AICoachChatRequest):
     """
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        return AICoachChatResponse(reply="I am currently offline. Please provide an API key to access AI coaching.")
+        return AICoachChatResponse(reply=_local_chat_response(request))
 
     try:
         client = genai.Client(api_key=api_key)
-        
-        # Build the system instructions
-        system_prompt = (
-            "You are an elite, highly knowledgeable fitness AI Coach. "
-            "Your job is to answer the user's questions about their workout history, form, and progress. "
-            "Keep your answers concise, encouraging, and highly specific to the data provided. "
-            "Do not provide medical advice. "
-            "Here is the context of the user's most recent workout sessions (most recent first):\n"
-        )
-        
-        for idx, s in enumerate(request.session_context):
-            system_prompt += f"Session {idx+1}: {s.get('exercise', 'unknown')} | Score: {s.get('score', s.get('form_score', 0))} | Reps: {s.get('reps', 0)} | Issues: {', '.join(s.get('issues', []))}\n"
 
-        # Construct the conversation history for Gemini
-        contents = [
-            {"role": "user", "parts": [{"text": system_prompt + "\n\nUser Question: " + request.message}]}
-        ]
-        
+        # Build system instruction with session context
+        system_instruction = (
+            "You are an elite, highly knowledgeable fitness AI Coach. "
+            "Answer the user's questions about their workout history, form, and progress. "
+            "Be concise, encouraging, and specific to the data provided. "
+            "Do not provide medical advice.\n\n"
+            "User's recent sessions (most recent first):\n"
+        )
+        for idx, s in enumerate(request.session_context):
+            system_instruction += (
+                f"Session {idx+1}: {s.get('exercise', 'unknown')} | "
+                f"Score: {s.get('score', s.get('form_score', 0))} | "
+                f"Reps: {s.get('reps', 0)} | "
+                f"Issues: {', '.join(s.get('issues', [])) or 'none'}\n"
+            )
+
+        # Build conversation history for Gemini.
+        # Gemini requires history to start with a 'user' turn and alternate user/model.
+        # Strip leading model turns (the UI sends the initial greeting as a model message).
         history_contents = []
         for msg in request.chat_history:
-            history_contents.append(
-                {"role": msg.role, "parts": [{"text": msg.text}]}
-            )
-        
-        final_contents = history_contents + contents
+            history_contents.append({"role": msg.role, "parts": [{"text": msg.text}]})
+
+        while history_contents and history_contents[0]["role"] == "model":
+            history_contents.pop(0)
+
+        # Append the new user message
+        history_contents.append({"role": "user", "parts": [{"text": request.message}]})
 
         response = client.models.generate_content(
-            model='gemini-2.5-flash',
-            contents=final_contents,
+            model="gemini-2.5-flash",
+            contents=history_contents,
+            config=types.GenerateContentConfig(system_instruction=system_instruction),
         )
         return AICoachChatResponse(reply=response.text.strip())
     except Exception as e:
         print(f"Gemini API Chat Error: {e}")
-        return AICoachChatResponse(reply="I'm sorry, I couldn't process your request right now due to a server error.")
+        return AICoachChatResponse(reply=_local_chat_response(request))

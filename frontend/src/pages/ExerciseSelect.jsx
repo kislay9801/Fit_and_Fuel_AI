@@ -61,7 +61,7 @@ const exercises = [
     level: 'Intermediate',
     levelColor: 'text-emerald-700 bg-emerald-100 border-emerald-200',
     desc: 'Bilateral knee absorption depth, landing symmetry, and valgus collapse detection. Essential for ACL injury screening.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBuoCSo5dUlnnmjZxOhAQTTqZ5oy5sngpveXcZ6RU86FUmvaVMXvBijvZomM6_El-Nd8DiyunAfWGvTTnQtlwAHCTomC4z4eWI3uatC6Kw7cq8XRdWbMDlehL0nDUe3xs3flv_tLehACwFxJRekmV1x9N3w15VU_oEAEUjz-hFzOIe7DSu69XXfrqGMF2sDtZB8r0AhzBSLLgQ0lCggbsLv2n4QbptD7w0iF3zZrHTxQg5kc2_Si_XtsqEfFS1KkjkWm2xY-FVYhe4',
+    img: 'https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?w=640&h=360&fit=crop&auto=format',
   },
   {
     id: 'highKnees',
@@ -71,7 +71,7 @@ const exercises = [
     level: 'Beginner',
     levelColor: 'text-blue-700 bg-blue-100 border-blue-200',
     desc: 'Hip-flexion angle and knee lift height tracking. Measures how high each knee rises relative to hip level with posture scoring.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDel65_SDbm4VytMUdhUFwhlSw5Kjwl34nuli9Iok5s2vifFBreAI4pctQiJIxwNdMitia60D-um8K_lWT9phnJkamhDT-Hq4VDtCCTZxMxWlqztNy8gsC6Ja3Hgg2dYV8VQldD89sEbQEdmsnqOBnoVc6wdZ9kkzmMy1rbS4yQXUNQg7hkWRECvLD6Vo453MGss5zFDmPyUoauancmzovP_L1ejRLG9OdPYUfipcokw8mUyKukplc15PlkMty4SZ0cxcelp8LIPNw',
+    img: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=640&h=360&fit=crop&auto=format',
   },
   {
     id: 'sumoSquat',
@@ -81,7 +81,7 @@ const exercises = [
     level: 'Intermediate',
     levelColor: 'text-emerald-700 bg-emerald-100 border-emerald-200',
     desc: 'Stance width ratio, bilateral knee depth, and outward knee-tracking analysis for hip mobility and groin flexibility assessment.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCELdcUuU5btONMTHLmUm9FlcdkqDRS7Yg5Ev3zmUGaQp8QKomOHeQL0QMS2JWgE3FcvCY9ZJH5nBB1y1vAQIKfcN-oZ9EZ0KgsoBsx-AzreX4AXRfsybLG5TOYxk67RZ66C3oyBnk0Bd3NWSfJu4DrwHMY-y3-5AeChP-7q_WzwrVozR2YaJTv9ICfLDPC_nXjYPYy7330ZSNvyU0NUGwLlHZniGQgh7LPGcu029xx-bqA29gHmooO5do3IwF1dLWF8xD097iGDoo',
+    img: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=640&h=360&fit=crop&auto=format',
   },
   {
     id: 'buttKicks',
@@ -91,7 +91,7 @@ const exercises = [
     level: 'Beginner',
     levelColor: 'text-blue-700 bg-blue-100 border-blue-200',
     desc: 'Knee-flexion depth monitoring to ensure the heel reaches glute height. Tracks posture and range of motion for warm-up quality.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDel65_SDbm4VytMUdhUFwhlSw5Kjwl34nuli9Iok5s2vifFBreAI4pctQiJIxwNdMitia60D-um8K_lWT9phnJkamhDT-Hq4VDtCCTZxMxWlqztNy8gsC6Ja3Hgg2dYV8VQldD89sEbQEdmsnqOBnoVc6wdZ9kkzmMy1rbS4yQXUNQg7hkWRECvLD6Vo453MGss5zFDmPyUoauancmzovP_L1ejRLG9OdPYUfipcokw8mUyKukplc15PlkMty4SZ0cxcelp8LIPNw',
+    img: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=640&h=360&fit=crop&auto=format',
   },
   {
     id: 'pogoJump',
@@ -101,7 +101,7 @@ const exercises = [
     level: 'Intermediate',
     levelColor: 'text-emerald-700 bg-emerald-100 border-emerald-200',
     desc: 'Leg stiffness monitoring for ankle-driven propulsion. Penalises excess knee bend to ensure true elastic rebound mechanics.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBb3Son-hBo3M8j4WtE5lJBLwzuhMhPELdpE9fB__FrngJFSLHJVdrPhQ6PqMOUlVTud8ui09pSirVKXzfAh7cAv0EEHd4z6JYnDHsBax3RA0fYhskNtojN6LT4kPyAuF4YwJgbJoaJB_jbs6RoSCnVW_OeoCDR-Ru3gDEGjjGl1iLaiMHEusK5l0Y6mj-jzWkVHb7RcK7dOvSlAFxywyj4AMKkXJ8L2RITu2qkwSRsi0_pPioDOM_jxIIjXUrXI4x0_AbzReNO1Mw',
+    img: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=640&h=360&fit=crop&auto=format',
   },
 ]
 
