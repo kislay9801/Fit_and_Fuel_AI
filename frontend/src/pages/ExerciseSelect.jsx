@@ -11,7 +11,7 @@ const exercises = [
     level: 'Intermediate',
     levelColor: 'text-emerald-700 bg-emerald-100 border-emerald-200',
     desc: 'Precision analysis of posterior chain activation and knee tracking alignment for optimal power output.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBuoCSo5dUlnnmjZxOhAQTTqZ5oy5sngpveXcZ6RU86FUmvaVMXvBijvZomM6_El-Nd8DiyunAfWGvTTnQtlwAHCTomC4z4eWI3uatC6Kw7cq8XRdWbMDlehL0nDUe3xs3flv_tLehACwFxJRekmV1x9N3w15VU_oEAEUjz-hFzOIe7DSu69XXfrqGMF2sDtZB8r0AhzBSLLgQ0lCggbsLv2n4QbptD7w0iF3zZrHTxQg5kc2_Si_XtsqEfFS1KkjkWm2xY-FVYhe4',
+    img: 'https://i0.wp.com/www.muscleandfitness.com/wp-content/uploads/2019/02/1109-Barbell-Back-Squat-GettyImages-614107160.jpg?quality=86&strip=all',
   },
   {
     id: 'pushup',
@@ -21,7 +21,7 @@ const exercises = [
     level: 'Beginner',
     levelColor: 'text-blue-700 bg-blue-100 border-blue-200',
     desc: 'Scapular stability and core rigidity monitoring. Calibrated for medical-grade push-off symmetry.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDel65_SDbm4VytMUdhUFwhlSw5Kjwl34nuli9Iok5s2vifFBreAI4pctQiJIxwNdMitia60D-um8K_lWT9phnJkamhDT-Hq4VDtCCTZxMxWlqztNy8gsC6Ja3Hgg2dYV8VQldD89sEbQEdmsnqOBnoVc6wdZ9kkzmMy1rbS4yQXUNQg7hkWRECvLD6Vo453MGss5zFDmPyUoauancmzovP_L1ejRLG9OdPYUfipcokw8mUyKukplc15PlkMty4SZ0cxcelp8LIPNw',
+    img: 'https://experiencelife.lifetime.life/wp-content/uploads/2007/04/apr07-pushup.jpg',
   },
   {
     id: 'deadlift',
@@ -31,7 +31,7 @@ const exercises = [
     level: 'Advanced',
     levelColor: 'text-amber-700 bg-amber-100 border-amber-200',
     desc: 'Spinal neutrality and hip-hinge mechanics analysis for safe and powerful deadlift technique.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCELdcUuU5btONMTHLmUm9FlcdkqDRS7Yg5Ev3zmUGaQp8QKomOHeQL0QMS2JWgE3FcvCY9ZJH5nBB1y1vAQIKfcN-oZ9EZ0KgsoBsx-AzreX4AXRfsybLG5TOYxk67RZ66C3oyBnk0Bd3NWSfJu4DrwHMY-y3-5AeChP-7q_WzwrVozR2YaJTv9ICfLDPC_nXjYPYy7330ZSNvyU0NUGwLlHZniGQgh7LPGcu029xx-bqA29gHmooO5do3IwF1dLWF8xD097iGDoo',
+    img: 'https://cdn.muscleandstrength.com/sites/default/files/deadlift_0.jpg',
   },
   {
     id: 'lunge',
@@ -41,7 +41,7 @@ const exercises = [
     level: 'Intermediate',
     levelColor: 'text-emerald-700 bg-emerald-100 border-emerald-200',
     desc: 'Dynamic balance assessment and front-knee depth monitoring. Independently tracks front vs rear leg for accurate ACL risk scoring.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBb3Son-hBo3M8j4WtE5lJBLwzuhMhPELdpE9fB__FrngJFSLHJVdrPhQ6PqMOUlVTud8ui09pSirVKXzfAh7cAv0EEHd4z6JYnDHsBax3RA0fYhskNtojN6LT4kPyAuF4YwJgbJoaJB_jbs6RoSCnVW_OeoCDR-Ru3gDEGjjGl1iLaiMHEusK5l0Y6mj-jzWkVHb7RcK7dOvSlAFxywyj4AMKkXJ8L2RITu2qkwSRsi0_pPioDOM_jxIIjXUrXI4x0_AbzReNO1Mw',
+    img: 'https://assets.clevelandclinic.org/transform/LargeFeatureImage/282b2789-82f6-4759-b42e-a441348f7cb8/lunge-1322900654',
   },
   {
     id: 'plank',
@@ -51,7 +51,7 @@ const exercises = [
     level: 'Beginner',
     levelColor: 'text-blue-700 bg-blue-100 border-blue-200',
     desc: 'Real-time spine neutrality, hip sag/pike detection, and head alignment tracking for maximum core endurance calibration.',
-    img: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC08ZtJEpZVdAzS3g5TZMFMnpsUeTEeLqTgPNiaBk7MAUwtIO2TDoAseGFG_J1N7gX0qfUW5_48yy-hG19wKeJrC98aVwHANPOLSTodT-cxnM2eG6KFdFj919MmbKDkqQXele0MKk_gluPa2aJSB87y2ih5tYzpPc-JxmGhHLV-vHOssgawKcotIpSlmCV-I0j6CGtPuHI7NQmeTVjdbBStfvZ607M8_Ny41JWdV5hZfI6G7gvss16VeZHCOWqEEM6kXz30NFqxi0I',
+    img: 'https://blog.nasm.org/hubfs/how-to-perform-standard-plank.jpg',
   },
   {
     id: 'jumpLanding',
@@ -61,7 +61,7 @@ const exercises = [
     level: 'Intermediate',
     levelColor: 'text-emerald-700 bg-emerald-100 border-emerald-200',
     desc: 'Bilateral knee absorption depth, landing symmetry, and valgus collapse detection. Essential for ACL injury screening.',
-    img: 'https://images.unsplash.com/photo-1601422407692-ec4eeec1d9b3?w=640&h=360&fit=crop&auto=format',
+    img: 'https://figures.semanticscholar.org/bccfee2edd966187f47e8423570c61c05548fc21/1-Figure1-1.png',
   },
   {
     id: 'highKnees',
@@ -71,7 +71,7 @@ const exercises = [
     level: 'Beginner',
     levelColor: 'text-blue-700 bg-blue-100 border-blue-200',
     desc: 'Hip-flexion angle and knee lift height tracking. Measures how high each knee rises relative to hip level with posture scoring.',
-    img: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=640&h=360&fit=crop&auto=format',
+    img: 'https://www.focusfitness.net/stock-photos/wp-content/uploads/edd/2017/07/Fit-man-doing-high-knees-cardio-exercise.jpg',
   },
   {
     id: 'sumoSquat',
@@ -81,7 +81,7 @@ const exercises = [
     level: 'Intermediate',
     levelColor: 'text-emerald-700 bg-emerald-100 border-emerald-200',
     desc: 'Stance width ratio, bilateral knee depth, and outward knee-tracking analysis for hip mobility and groin flexibility assessment.',
-    img: 'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=640&h=360&fit=crop&auto=format',
+    img: 'https://imagely.mirafit.co.uk/wp/wp-content/uploads/2024/02/sumo-squat-with-Mirafit-Rubber-Dumbbell-1024x682.jpg',
   },
   {
     id: 'buttKicks',
@@ -91,7 +91,7 @@ const exercises = [
     level: 'Beginner',
     levelColor: 'text-blue-700 bg-blue-100 border-blue-200',
     desc: 'Knee-flexion depth monitoring to ensure the heel reaches glute height. Tracks posture and range of motion for warm-up quality.',
-    img: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=640&h=360&fit=crop&auto=format',
+    img: 'https://spotebi.com/wp-content/uploads/2015/01/butt-kicks-exercise-illustration.jpg',
   },
   {
     id: 'pogoJump',
@@ -101,7 +101,7 @@ const exercises = [
     level: 'Intermediate',
     levelColor: 'text-emerald-700 bg-emerald-100 border-emerald-200',
     desc: 'Leg stiffness monitoring for ankle-driven propulsion. Penalises excess knee bend to ensure true elastic rebound mechanics.',
-    img: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=640&h=360&fit=crop&auto=format',
+    img: 'https://i.ytimg.com/vi/zKqcL6HSTE4/maxresdefault.jpg',
   },
 ]
 

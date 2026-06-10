@@ -45,19 +45,23 @@ export default function AICoachChat({ sessions, onClose }) {
       }
 
       const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000'
-      const response = await fetch(`${apiBase}/api/coaching/chat`, {
+      const url = `${apiBase}/api/coaching/chat`
+      const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
 
-      if (!response.ok) throw new Error('Network response was not ok')
-      
+      if (!response.ok) {
+        const errText = await response.text().catch(() => '')
+        throw new Error(`HTTP ${response.status} ${response.statusText} — ${errText}`)
+      }
+
       const data = await response.json()
-      
+
       setMessages(prev => [...prev, { role: 'model', text: data.reply }])
     } catch (err) {
-      console.error('Chat error:', err)
+      console.error('[AICoach] Chat error:', err)
       setMessages(prev => [...prev, { role: 'model', text: "I'm sorry, I'm having trouble connecting to my server right now." }])
     } finally {
       setLoading(false)
