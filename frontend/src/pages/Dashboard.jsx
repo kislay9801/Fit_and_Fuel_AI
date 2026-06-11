@@ -6,13 +6,6 @@ import { Plus, TrendingUp, Award, ShieldCheck, ArrowRight, Activity, CalendarDay
 
 const exerciseEmoji = { squat: '🏋️', pushup: '💪', deadlift: '🔥' }
 
-// Caption text per trend range
-const PERIOD_CAPTION = {
-  '7D': 'Avg form score by day — last 7 days',
-  '1M': 'Avg form score by date — last 30 days',
-  '6M': 'Avg form score by month — last 6 months',
-}
-
 /**
  * Builds a recommendation from the user's actual session data — their most
  * frequently flagged issue, or their score trend — so it's personalized
@@ -52,22 +45,43 @@ function buildRecommendation(sessions, avgScore) {
 
 const scoreOf = s => Math.round(s.score ?? s.form_score ?? 0)
 const dateOf = s => (s.createdAt instanceof Date ? s.createdAt : new Date(s.createdAt))
-const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x }
 
 function avgScore(list) {
   return list.length ? Math.round(list.reduce((a, s) => a + scoreOf(s), 0) / list.length) : null
 }
 
+function ordinal(n) {
+  const v = n % 100
+  if (v >= 11 && v <= 13) return `${n}th`
+  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] || 'th'}`
+}
+
+const periodCaption = (period) => {
+  if (period === '7D') return 'Last 7 days'
+  if (period === '6M') return 'Last 6 months'
+  return new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+}
+
+/** Plain-language description of a bucket, shown on hover/tap. */
+function bucketSentence(b) {
+  const verb = b.isMonth ? 'in' : 'on'
+  if (b.count > 0) {
+    return `You did ${b.count} session${b.count > 1 ? 's' : ''} with an average score of ${b.avg} ${verb} ${b.dateText}.`
+  }
+  return `No activity ${verb} ${b.dateText}.`
+}
+
 /**
  * Aggregates sessions into trend buckets that differ by the selected range:
  *   7D → one bucket per day for the last 7 days
- *   1M → one bucket per day for the last 30 days
+ *   1M → one bucket per calendar date of the current month (1 → today)
  *   6M → one bucket per calendar month for the last 6 months
- * Each bucket: { key, label, sub, count, avg } (avg = null when no activity).
- * Uses the real current date.
+ * Each bucket: { key, label, count, avg, dateText, isMonth }. avg is null when
+ * there was no activity. Uses the real current date.
  */
 function buildTrend(sessions, period) {
   const now = new Date()
+  const longMonth = (d) => d.toLocaleDateString('en-US', { month: 'long' })
 
   if (period === '6M') {
     const buckets = []
@@ -78,27 +92,47 @@ function buildTrend(sessions, period) {
       buckets.push({
         key: `${start.getFullYear()}-${start.getMonth()}`,
         label: start.toLocaleDateString('en-US', { month: 'short' }),
-        sub: start.getFullYear() !== now.getFullYear() ? `'${String(start.getFullYear()).slice(2)}` : '',
         count: inRange.length,
         avg: avgScore(inRange),
+        isMonth: true,
+        dateText: `${longMonth(start)} ${start.getFullYear()}`,
       })
     }
     return buckets
   }
 
-  // Daily buckets for 7D / 1M
-  const days = period === '7D' ? 7 : 30
+  if (period === '1M') {
+    // Calendar dates of the current month, 1 → today
+    const year = now.getFullYear()
+    const month = now.getMonth()
+    const buckets = []
+    for (let day = 1; day <= now.getDate(); day++) {
+      const start = new Date(year, month, day)
+      const next = new Date(year, month, day + 1)
+      const inRange = sessions.filter(s => { const d = dateOf(s); return d >= start && d < next })
+      buckets.push({
+        key: `d${day}`,
+        label: String(day),
+        count: inRange.length,
+        avg: avgScore(inRange),
+        dateText: `${start.toLocaleDateString('en-US', { weekday: 'long' })}, ${ordinal(day)} ${longMonth(start)}`,
+      })
+    }
+    return buckets
+  }
+
+  // 7D → last 7 days
   const buckets = []
-  for (let i = days - 1; i >= 0; i--) {
-    const day = startOfDay(now); day.setDate(day.getDate() - i)
+  for (let i = 6; i >= 0; i--) {
+    const day = new Date(now); day.setHours(0, 0, 0, 0); day.setDate(day.getDate() - i)
     const next = new Date(day); next.setDate(day.getDate() + 1)
     const inRange = sessions.filter(s => { const d = dateOf(s); return d >= day && d < next })
     buckets.push({
       key: day.toISOString().slice(0, 10),
-      label: period === '7D' ? day.toLocaleDateString('en-US', { weekday: 'short' }) : String(day.getDate()),
-      sub: period === '7D' ? String(day.getDate()) : '',
+      label: day.toLocaleDateString('en-US', { weekday: 'short' }),
       count: inRange.length,
       avg: avgScore(inRange),
+      dateText: `${day.toLocaleDateString('en-US', { weekday: 'long' })}, ${ordinal(day.getDate())} ${longMonth(day)}`,
     })
   }
   return buckets
@@ -135,6 +169,7 @@ export default function Dashboard({ user }) {
   const [sessions, setSessions] = useState([])
   const [loading,  setLoading]  = useState(true)
   const [period,   setPeriod]   = useState('1M')
+  const [selectedKey, setSelectedKey] = useState(null)
 
   const hasSessions = !loading && sessions.length > 0
   const recent = sessions.slice(0, 5) // most recent, for the table
@@ -142,6 +177,7 @@ export default function Dashboard({ user }) {
   // Trend buckets — aggregated by day (7D/1M) or month (6M) over real dates
   const trend = buildTrend(sessions, period)
   const trendActive = trend.filter(b => b.count > 0).length
+  const selectedBucket = trend.find(b => b.key === selectedKey)
 
   // Recommendation reflects recent form (last ~20 sessions), not all-time
   const recommendation = buildRecommendation(sessions.slice(0, 20), stats?.avgFormScore ?? 0)
@@ -255,7 +291,7 @@ export default function Dashboard({ user }) {
                 {['7D', '1M', '6M'].map((p) => (
                   <button
                     key={p}
-                    onClick={() => setPeriod(p)}
+                    onClick={() => { setPeriod(p); setSelectedKey(null) }}
                     className={`px-3 py-1 rounded-md text-xs font-bold transition-colors ${
                       period === p ? 'bg-white text-blue-600 shadow-sm border border-slate-200' : 'text-slate-500 hover:text-slate-700'
                     }`}
@@ -281,27 +317,30 @@ export default function Dashboard({ user }) {
                 </div>
               ) : (
                 trend.map((b) => {
-                  const tip = b.count > 0
-                    ? `${b.label}${b.sub ? ' ' + b.sub : ''}: ${b.count} session${b.count > 1 ? 's' : ''} · avg ${b.avg}`
-                    : `${b.label}${b.sub ? ' ' + b.sub : ''}: No activity`
+                  const isSelected = b.key === selectedKey
                   return (
-                    <div key={b.key} className="relative group flex-1 min-w-0 flex flex-col justify-end h-full">
+                    <div
+                      key={b.key}
+                      onMouseEnter={() => setSelectedKey(b.key)}
+                      onMouseLeave={() => setSelectedKey(null)}
+                      onClick={() => setSelectedKey(b.key)}
+                      className="relative flex-1 min-w-0 flex flex-col justify-end h-full cursor-pointer"
+                    >
                       {b.avg != null ? (
-                        <div className={`w-full rounded-t-md transition-colors ${barColor(b.avg)}`} style={{ height: `${Math.max(b.avg, 3)}%` }} />
+                        <div
+                          className={`w-full rounded-t-md transition-all ${barColor(b.avg)} ${isSelected ? 'ring-2 ring-slate-900 ring-offset-1' : ''}`}
+                          style={{ height: `${Math.max(b.avg, 3)}%` }}
+                        />
                       ) : (
-                        <div className="w-full h-1 rounded bg-slate-200/70" />
+                        <div className={`w-full h-1 rounded bg-slate-200/70 ${isSelected ? 'ring-2 ring-slate-400' : ''}`} />
                       )}
-                      <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap shadow-lg z-10 pointer-events-none">
-                        {tip}
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
-                      </div>
                     </div>
                   )
                 })
               )}
             </div>
 
-            {/* Axis labels (aligned to bars; sparse for the 30-day view) */}
+            {/* Axis labels (aligned to bars; sparse for the monthly date view) */}
             {hasSessions && !loading && (
               <div className={`flex ${period === '1M' ? 'gap-0.5' : 'gap-1.5'} mt-2 px-2`}>
                 {trend.map((b, i) => (
@@ -312,10 +351,13 @@ export default function Dashboard({ user }) {
               </div>
             )}
 
-            <p className="text-xs text-slate-400 font-medium mt-2 px-2">
-              {hasSessions
-                ? `${PERIOD_CAPTION[period]} · ${trendActive} active ${period === '6M' ? 'month' : 'day'}${trendActive === 1 ? '' : 's'}`
-                : PERIOD_CAPTION[period]}
+            {/* Detail line — shows the hovered/tapped bar, else a summary */}
+            <p className="text-xs text-slate-500 font-medium mt-3 px-2 min-h-[2rem]">
+              {selectedBucket
+                ? bucketSentence(selectedBucket)
+                : hasSessions
+                  ? `${periodCaption(period)} · ${trendActive} active ${period === '6M' ? 'month' : 'day'}${trendActive === 1 ? '' : 's'}. Tap a bar for details.`
+                  : periodCaption(period)}
             </p>
           </div>
 
