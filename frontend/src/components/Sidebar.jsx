@@ -40,8 +40,8 @@ export default function Sidebar({ user, mobileOpen = false, onClose = () => {} }
           <X className="w-5 h-5" />
         </button>
 
-        {/* Logo */}
-        <div className="flex items-center gap-3 mb-10 pl-2">
+        {/* Logo → Dashboard */}
+        <Link to="/dashboard" onClick={onClose} className="flex items-center gap-3 mb-10 pl-2">
           <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-600/20">
             <Zap className="w-5 h-5 text-white fill-white" />
           </div>
@@ -49,7 +49,7 @@ export default function Sidebar({ user, mobileOpen = false, onClose = () => {} }
             <div className="text-[15px] font-extrabold text-slate-900 tracking-tight leading-tight">Fit &amp; Fuel</div>
             <div className="text-xs font-bold text-blue-600 tracking-wider uppercase">AI Coach</div>
           </div>
-        </div>
+        </Link>
 
         {/* Nav */}
         <nav className="flex-1 flex flex-col gap-1.5 overflow-y-auto">

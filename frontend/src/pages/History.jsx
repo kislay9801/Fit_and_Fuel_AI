@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getUserSessions } from '../firebase/firestore'
 import { Search, Filter, BarChart2, CalendarDays, Clock, ChevronDown, Activity, MessageSquare } from 'lucide-react'
 import AICoachChat from '../components/AICoachChat'
+import BackToDashboard from '../components/BackToDashboard'
 import { getIssueInfo } from '../utils/issueInfo'
 
 const exerciseEmoji = { squat: '🏋️', pushup: '💪', deadlift: '🔥' }
@@ -84,8 +85,9 @@ export default function History({ user }) {
 
       {/* ── Top App Bar ── */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-4 sm:px-8 border-b border-slate-200 shadow-sm gap-2">
-        <div className="flex items-center gap-6">
-          <span className="font-bold text-2xl text-slate-900 tracking-tight">History</span>
+        <div className="flex items-center gap-3 min-w-0">
+          <BackToDashboard />
+          <span className="font-bold text-xl sm:text-2xl text-slate-900 tracking-tight truncate">History</span>
         </div>
         <div className="flex items-center gap-4">
           <div className="hidden sm:flex bg-slate-100 rounded-lg px-3 py-2 items-center gap-2 border border-slate-200">
@@ -214,12 +216,6 @@ export default function History({ user }) {
             </select>
           </div>
           <div className="flex-1" />
-          <button
-            onClick={() => { setFilterExercise('all'); setFilterScore('all'); setSearch('') }}
-            className="px-5 py-2.5 text-blue-600 font-semibold text-sm hover:bg-blue-50 hover:text-blue-700 transition-colors rounded-lg"
-          >
-            Clear Filters
-          </button>
         </section>
 
         {/* ── Session list ── */}

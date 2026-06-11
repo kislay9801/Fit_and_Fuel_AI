@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { getAllUsers } from '../firebase/firestore'
 import { isAdmin } from '../utils/admin'
 import { Users, Shield, RefreshCw, Activity, Award } from 'lucide-react'
+import BackToDashboard from '../components/BackToDashboard'
 
 function formatDate(d) {
   if (!d) return '—'
@@ -44,7 +45,8 @@ export default function Admin({ user }) {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-4 sm:px-8 border-b border-slate-200 shadow-sm gap-2">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-lg bg-slate-900 flex items-center justify-center flex-shrink-0">
+          <BackToDashboard />
+          <div className="hidden sm:flex w-9 h-9 rounded-lg bg-slate-900 items-center justify-center flex-shrink-0">
             <Shield className="w-5 h-5 text-white" />
           </div>
           <h2 className="font-bold text-lg sm:text-2xl text-slate-900 tracking-tight truncate">Admin · Users</h2>
