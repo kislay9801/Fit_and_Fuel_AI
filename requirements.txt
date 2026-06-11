@@ -1,3 +1,7 @@
-fastapi==0.115.6
-pydantic==2.10.4
+# Dependencies for the Vercel serverless coaching function.
+# Versions chosen so prebuilt wheels exist for Vercel's Python 3.14 runtime
+# (pydantic 2.10 had no 3.14 wheel and tried to compile pydantic-core from
+# source via Rust/PyO3, which fails on 3.14).
+fastapi>=0.118.0
+pydantic>=2.12.0
 google-genai>=0.2.2
