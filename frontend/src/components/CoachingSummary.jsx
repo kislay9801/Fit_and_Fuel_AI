@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Sparkles, TrendingUp, AlertCircle, Loader2, RefreshCw } from 'lucide-react'
 import { getCoachingSummary } from '../utils/api'
+import { getIssueInfo } from '../utils/issueInfo'
 
 function localCoachingFallback(sessionData) {
   const exercise = sessionData.exercise || 'exercise'
@@ -113,19 +114,28 @@ export default function CoachingSummary({ sessionData }) {
         ))}
       </div>
 
-      {/* Issues list */}
+      {/* Issues list — friendly name + plain-language explanation */}
       {sessionData.issues_detected?.length > 0 && (
         <div className="mb-8 bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
-          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">
+          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
             Issues Flagged
           </div>
-          <div className="flex flex-wrap gap-2">
-            {sessionData.issues_detected.map(issue => (
-              <span key={issue} className="px-3 py-1 bg-amber-50 border border-amber-200 rounded-lg text-xs font-bold text-amber-700 uppercase tracking-wide">
-                {issue.replace(/_/g, ' ')}
-              </span>
-            ))}
-          </div>
+          <ul className="flex flex-col gap-4">
+            {sessionData.issues_detected.map(issue => {
+              const info = getIssueInfo(issue)
+              return (
+                <li key={issue} className="flex gap-3">
+                  <span className="mt-1.5 flex-shrink-0 w-2 h-2 rounded-full bg-amber-400" />
+                  <div>
+                    <div className="text-sm font-bold text-slate-800">{info.label}</div>
+                    {info.detail && (
+                      <div className="text-sm text-slate-500 leading-snug mt-0.5">{info.detail}</div>
+                    )}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
         </div>
       )}
 

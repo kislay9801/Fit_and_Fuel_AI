@@ -60,7 +60,7 @@ const exercises = [
     icon: ShieldCheck,
     level: 'Intermediate',
     levelColor: 'text-emerald-700 bg-emerald-100 border-emerald-200',
-    desc: 'Bilateral knee absorption depth, landing symmetry, and valgus collapse detection. Essential for ACL injury screening.',
+    desc: 'SOFT-landing screen for ACL injury risk. Rewards a deep knee bend (60–100°) to absorb impact, plus landing symmetry and knee-cave detection. The opposite goal of Pogo Jumps.',
     img: 'https://figures.semanticscholar.org/bccfee2edd966187f47e8423570c61c05548fc21/1-Figure1-1.png',
   },
   {
@@ -100,7 +100,7 @@ const exercises = [
     icon: Activity,
     level: 'Intermediate',
     levelColor: 'text-emerald-700 bg-emerald-100 border-emerald-200',
-    desc: 'Leg stiffness monitoring for ankle-driven propulsion. Penalises excess knee bend to ensure true elastic rebound mechanics.',
+    desc: 'STIFF, springy ankle-driven hops. Rewards minimal knee bend and fast ground contact — here a deep knee bend is penalised. Trains reactive rebound, not impact absorption (the opposite of Jump Landing).',
     img: 'https://i.ytimg.com/vi/zKqcL6HSTE4/maxresdefault.jpg',
   },
 ]

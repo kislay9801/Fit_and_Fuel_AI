@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { getUserSessions } from '../firebase/firestore'
 import { Search, Filter, BarChart2, Download, CalendarDays, Clock, ChevronDown, Activity, LayoutDashboard, Dumbbell, History as HistoryIcon, User, MessageSquare } from 'lucide-react'
 import AICoachChat from '../components/AICoachChat'
+import { getIssueInfo } from '../utils/issueInfo'
 
 const exerciseEmoji = { squat: '🏋️', pushup: '💪', deadlift: '🔥' }
 
@@ -330,11 +331,18 @@ export default function History({ user }) {
                         <div className="hidden xl:flex flex-col gap-2 min-w-[120px]">
                           <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Issues detected</span>
                           <div className="flex flex-wrap gap-1.5">
-                            {s.issues.slice(0, 2).map(issue => (
-                              <span key={issue} className="text-[10px] px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-md font-bold uppercase tracking-wide">
-                                {issue.replace(/_/g, ' ')}
-                              </span>
-                            ))}
+                            {s.issues.slice(0, 2).map(issue => {
+                              const info = getIssueInfo(issue)
+                              return (
+                                <span
+                                  key={issue}
+                                  title={info.detail}
+                                  className="text-[10px] px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-md font-bold uppercase tracking-wide cursor-help"
+                                >
+                                  {info.label}
+                                </span>
+                              )
+                            })}
                           </div>
                         </div>
                       )}
