@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Sparkles, TrendingUp, AlertCircle, Loader2, RefreshCw } from 'lucide-react'
 import { getCoachingSummary } from '../utils/api'
 import { getIssueInfo } from '../utils/issueInfo'
+import { isRepBased } from '../utils/formScoring'
 
 function localCoachingFallback(sessionData) {
   const exercise = sessionData.exercise || 'exercise'
@@ -102,7 +103,8 @@ export default function CoachingSummary({ sessionData }) {
         {[
           { label: 'Avg Score', value: `${sessionData.avg_form_score}`, suffix: '/100', color: scoreColorClass },
           { label: 'Best Score', value: sessionData.best_score ?? '—', color: 'text-emerald-600' },
-          { label: 'Reps', value: sessionData.reps_detected ?? 0, color: 'text-blue-600' },
+          // Reps are meaningless for isometric holds (e.g. plank) — omit them there
+          ...(isRepBased(sessionData.exercise) ? [{ label: 'Reps', value: sessionData.reps_detected ?? 0, color: 'text-blue-600' }] : []),
           { label: 'Issues', value: sessionData.issues_detected?.length ?? 0, color: 'text-amber-600' },
         ].map(({ label, value, suffix, color }) => (
           <div key={label} className="bg-white rounded-2xl p-5 text-center border border-slate-200 shadow-sm">

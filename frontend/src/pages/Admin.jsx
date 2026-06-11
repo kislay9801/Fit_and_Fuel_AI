@@ -42,12 +42,12 @@ export default function Admin({ user }) {
   return (
     <div className="bg-slate-50 text-slate-900 min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-8 border-b border-slate-200 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-lg bg-slate-900 flex items-center justify-center">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-4 sm:px-8 border-b border-slate-200 shadow-sm gap-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-lg bg-slate-900 flex items-center justify-center flex-shrink-0">
             <Shield className="w-5 h-5 text-white" />
           </div>
-          <h2 className="font-bold text-2xl text-slate-900 tracking-tight">Admin · Users</h2>
+          <h2 className="font-bold text-lg sm:text-2xl text-slate-900 tracking-tight truncate">Admin · Users</h2>
         </div>
         <button
           onClick={load}
@@ -57,7 +57,7 @@ export default function Admin({ user }) {
         </button>
       </header>
 
-      <div className="p-8 max-w-6xl mx-auto space-y-6">
+      <div className="p-4 sm:p-8 max-w-6xl mx-auto space-y-6">
         {/* Stat cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[

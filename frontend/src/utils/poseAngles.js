@@ -16,9 +16,25 @@ export function calculateAngle(A, B, C) {
   return Math.acos(cosAngle) * (180 / Math.PI)
 }
 
-/** Returns false if a landmark is missing or has low visibility confidence */
-function isVisible(landmark, threshold = 0.5) {
+/** Landmark visibility (0–1); 1 if the model didn't report one. */
+function vis(lm) {
+  return lm && lm.visibility !== undefined ? lm.visibility : 1
+}
+
+/**
+ * Returns false only if a landmark is missing or essentially invisible.
+ * The floor is intentionally low (0.2): MediaPipe assigns low visibility to the
+ * far-side limbs in a side-on view, but its position estimate is still usable
+ * for form analysis. A high cutoff caused side-view squats/push-ups to return
+ * null on every frame ("no frames detected / 0 reps").
+ */
+function isVisible(landmark, threshold = 0.2) {
   return landmark && (landmark.visibility === undefined || landmark.visibility >= threshold)
+}
+
+/** Summed visibility of a set of landmarks — used to pick the camera-facing side. */
+function sideScore(...lms) {
+  return lms.reduce((s, lm) => s + vis(lm), 0)
 }
 
 /**
@@ -35,201 +51,139 @@ function isVisible(landmark, threshold = 0.5) {
 export function getSquatAngles(landmarks) {
   if (!landmarks || landmarks.length < 29) return null
 
-  // Use left side landmarks (more reliable for side-on view)
-  const leftShoulder = landmarks[11]
-  const leftHip = landmarks[23]
-  const leftKnee = landmarks[25]
-  const leftAnkle = landmarks[27]
-  const rightKnee = landmarks[26]
-  const rightAnkle = landmarks[28]
+  const lShoulder = landmarks[11], rShoulder = landmarks[12]
+  const lHip = landmarks[23], rHip = landmarks[24]
+  const lKnee = landmarks[25], rKnee = landmarks[26]
+  const lAnkle = landmarks[27], rAnkle = landmarks[28]
 
-  if (!isVisible(leftShoulder) || !isVisible(leftHip) || !isVisible(leftKnee) || !isVisible(leftAnkle)) return null
+  // Use whichever leg the camera sees best (side-on filming occludes one side).
+  const useLeft = sideScore(lHip, lKnee, lAnkle) >= sideScore(rHip, rKnee, rAnkle)
+  const shoulder = useLeft ? lShoulder : rShoulder
+  const hip = useLeft ? lHip : rHip
+  const knee = useLeft ? lKnee : rKnee
+  const ankle = useLeft ? lAnkle : rAnkle
 
-  const kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle)
-  const hipAngle = calculateAngle(leftShoulder, leftHip, leftKnee)
+  if (!isVisible(hip) || !isVisible(knee) || !isVisible(ankle)) return null
 
-  // Spine angle: angle of shoulder-hip line from vertical
-  const shoulderHipDx = leftShoulder.x - leftHip.x
-  const shoulderHipDy = leftShoulder.y - leftHip.y
-  const spineAngle = Math.abs(Math.atan2(shoulderHipDx, -shoulderHipDy) * (180 / Math.PI))
+  const kneeAngle = calculateAngle(hip, knee, ankle)
+  const hipAngle = calculateAngle(shoulder, hip, knee)
 
-  // Knee valgus: left knee x should be >= left ankle x (knees out over toes)
-  const kneeValgusLeft = leftKnee.x < leftAnkle.x // true = valgus detected
-  const kneeValgusRight = rightKnee.x > rightAnkle.x // for right side (mirrored)
+  const spineAngle = Math.abs(Math.atan2(shoulder.x - hip.x, -(shoulder.y - hip.y)) * (180 / Math.PI))
 
-  return {
-    kneeAngle,
-    hipAngle,
-    spineAngle,
-    kneeValgus: kneeValgusLeft || kneeValgusRight,
-    kneeValgusAmount: Math.max(0, leftAnkle.x - leftKnee.x, rightKnee.x - rightAnkle.x), // max cave from either side
-  }
+  // Knee valgus only reads correctly from the front, where both knees+ankles are
+  // clearly visible — otherwise skip it to avoid false cave alerts in side views.
+  const valgusMeasurable = vis(lKnee) > 0.5 && vis(lAnkle) > 0.5 && vis(rKnee) > 0.5 && vis(rAnkle) > 0.5
+  const kneeValgus = valgusMeasurable && (lKnee.x < lAnkle.x || rKnee.x > rAnkle.x)
+  const kneeValgusAmount = valgusMeasurable ? Math.max(0, lAnkle.x - lKnee.x, rKnee.x - rAnkle.x) : 0
+
+  return { kneeAngle, hipAngle, spineAngle, kneeValgus, kneeValgusAmount }
 }
 
 export function getPushupAngles(landmarks) {
   if (!landmarks || landmarks.length < 29) return null
 
   const nose = landmarks[0]
-  const leftShoulder = landmarks[11]
-  const rightShoulder = landmarks[12]
-  const leftElbow = landmarks[13]
-  const rightElbow = landmarks[14]
-  const leftWrist = landmarks[15]
-  const rightWrist = landmarks[16]
-  const leftHip = landmarks[23]
-  const rightHip = landmarks[24]
-  const leftAnkle = landmarks[27]
-  const rightAnkle = landmarks[28]
+  const lShoulder = landmarks[11], rShoulder = landmarks[12]
+  const lElbow = landmarks[13], rElbow = landmarks[14]
+  const lWrist = landmarks[15], rWrist = landmarks[16]
+  const lHip = landmarks[23], rHip = landmarks[24]
+  const lAnkle = landmarks[27], rAnkle = landmarks[28]
 
-  if (
-    !isVisible(leftShoulder) || !isVisible(rightShoulder) ||
-    !isVisible(leftElbow) || !isVisible(rightElbow) ||
-    !isVisible(leftWrist) || !isVisible(rightWrist) ||
-    !isVisible(leftHip) || !isVisible(rightHip) ||
-    !isVisible(leftAnkle) || !isVisible(rightAnkle)
-  ) return null
+  // Push-ups are filmed side-on — use the camera-facing arm/side only.
+  const useLeft = sideScore(lShoulder, lElbow, lWrist, lHip) >= sideScore(rShoulder, rElbow, rWrist, rHip)
+  const shoulder = useLeft ? lShoulder : rShoulder
+  const elbow = useLeft ? lElbow : rElbow
+  const wrist = useLeft ? lWrist : rWrist
+  const hip = useLeft ? lHip : rHip
+  const ankle = useLeft ? lAnkle : rAnkle
 
-  // Average left and right for reliability
-  const elbowAngle = (
-    calculateAngle(leftShoulder, leftElbow, leftWrist) +
-    calculateAngle(rightShoulder, rightElbow, rightWrist)
-  ) / 2
+  if (!isVisible(shoulder) || !isVisible(elbow) || !isVisible(wrist) || !isVisible(hip)) return null
 
-  // Hip sag: mid-hip should be on line between mid-shoulder and mid-ankle
-  const midShoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 }
-  const midHip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 }
-  const midAnkle = { x: (leftAnkle.x + rightAnkle.x) / 2, y: (leftAnkle.y + rightAnkle.y) / 2 }
+  const elbowAngle = calculateAngle(shoulder, elbow, wrist)
 
-  // Interpolate expected hip y on shoulder-ankle line
-  const t = (midHip.x - midShoulder.x) / (midAnkle.x - midShoulder.x + 0.0001)
-  const expectedHipY = midShoulder.y + t * (midAnkle.y - midShoulder.y)
-  // positive = sag (hips dropping below line), negative = pike (hips above line)
-  const hipDeviation = midHip.y - expectedHipY
+  // Hip sag/pike: where the hip sits relative to the shoulder→ankle line.
+  let hipDeviation = 0
+  if (isVisible(ankle)) {
+    const t = (hip.x - shoulder.x) / (ankle.x - shoulder.x + 0.0001)
+    const expectedHipY = shoulder.y + t * (ankle.y - shoulder.y)
+    hipDeviation = hip.y - expectedHipY // + = sag, - = pike
+  }
   const hipSagAmount = Math.abs(hipDeviation)
 
-  // Head position: nose vs spine line
-  const spineAngle = calculateAngle(midShoulder, midHip, midAnkle)
-
-  // Elbow flare: angle between elbow direction and torso
-  const leftElbowFlare = calculateAngle(
-    { x: leftShoulder.x, y: leftShoulder.y },
-    { x: leftElbow.x, y: leftElbow.y },
-    { x: leftHip.x, y: leftHip.y }
-  )
+  const elbowFlare = calculateAngle(shoulder, elbow, hip)
+  const spineAngle = isVisible(ankle) ? calculateAngle(shoulder, hip, ankle) : 180
 
   return {
     elbowAngle,
     hipSagAmount,
     hipDeviation,
     spineAngle,
-    elbowFlare: leftElbowFlare,
-    midShoulder,
-    midHip,
-    midAnkle,
+    elbowFlare,
+    midShoulder: shoulder,
+    midHip: hip,
+    midAnkle: ankle,
   }
 }
 
 export function getDeadliftAngles(landmarks) {
   if (!landmarks || landmarks.length < 29) return null
 
-  const leftShoulder = landmarks[11]
-  const rightShoulder = landmarks[12]
-  const leftHip = landmarks[23]
-  const rightHip = landmarks[24]
-  const leftKnee = landmarks[25]
-  const rightKnee = landmarks[26]
-  const leftAnkle = landmarks[27]
+  const lShoulder = landmarks[11], rShoulder = landmarks[12]
+  const lHip = landmarks[23], rHip = landmarks[24]
+  const lKnee = landmarks[25], rKnee = landmarks[26]
+  const lAnkle = landmarks[27], rAnkle = landmarks[28]
 
-  if (
-    !isVisible(leftShoulder) || !isVisible(rightShoulder) ||
-    !isVisible(leftHip) || !isVisible(rightHip) ||
-    !isVisible(leftKnee) || !isVisible(leftAnkle)
-  ) return null
+  const useLeft = sideScore(lShoulder, lHip, lKnee, lAnkle) >= sideScore(rShoulder, rHip, rKnee, rAnkle)
+  const shoulder = useLeft ? lShoulder : rShoulder
+  const hip = useLeft ? lHip : rHip
+  const knee = useLeft ? lKnee : rKnee
+  const ankle = useLeft ? lAnkle : rAnkle
 
-  const midShoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 }
-  const midHip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 }
+  if (!isVisible(shoulder) || !isVisible(hip) || !isVisible(knee) || !isVisible(ankle)) return null
 
-  // Spine angle from vertical (forward lean)
-  const spineDx = midShoulder.x - midHip.x
-  const spineDy = midShoulder.y - midHip.y
-  const spineAngle = Math.abs(Math.atan2(spineDx, -spineDy) * (180 / Math.PI))
+  const spineAngle = Math.abs(Math.atan2(shoulder.x - hip.x, -(shoulder.y - hip.y)) * (180 / Math.PI))
+  const kneeAngle = calculateAngle(hip, knee, ankle)
+  const hipsAboveKnees = hip.y < knee.y
+  const hyperextension = shoulder.x < hip.x
+  const shoulderRounding = shoulder.y - hip.y
 
-  // Knee angle (hip hinge check)
-  const kneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle)
-
-  // Hip height vs knee height (hips should be higher)
-  const hipsAboveKnees = midHip.y < leftKnee.y // lower y = higher on screen
-
-  // Lockout: at top, shoulders should be behind/above hips (not hyperextended)
-  const hyperextension = midShoulder.x < midHip.x // shoulder behind hip = hyperextension (if camera on right side)
-
-  // Thoracic rounding: shoulder y relative to expected position on hip-ankle line
-  const hipToAnkleDy = leftAnkle.y - midHip.y
-  const shoulderRounding = leftShoulder.y - midHip.y // if positive, shoulder dropped forward
-
-  return {
-    spineAngle,
-    kneeAngle,
-    hipsAboveKnees,
-    hyperextension,
-    shoulderRounding,
-    midShoulder,
-    midHip,
-  }
+  return { spineAngle, kneeAngle, hipsAboveKnees, hyperextension, shoulderRounding, midShoulder: shoulder, midHip: hip }
 }
 
 // ─── LUNGE ─────────────────────────────────────────────────────────────────
 export function getLungeAngles(landmarks) {
   if (!landmarks || landmarks.length < 29) return null
 
-  const leftShoulder = landmarks[11]
-  const rightShoulder = landmarks[12]
-  const leftHip = landmarks[23]
-  const rightHip = landmarks[24]
-  const leftKnee = landmarks[25]
-  const rightKnee = landmarks[26]
-  const leftAnkle = landmarks[27]
-  const rightAnkle = landmarks[28]
+  const lShoulder = landmarks[11], rShoulder = landmarks[12]
+  const leftHip = landmarks[23], rightHip = landmarks[24]
+  const leftKnee = landmarks[25], rightKnee = landmarks[26]
+  const leftAnkle = landmarks[27], rightAnkle = landmarks[28]
 
-  if (
-    !isVisible(leftHip) || !isVisible(rightHip) ||
-    !isVisible(leftKnee) || !isVisible(rightKnee) ||
-    !isVisible(leftAnkle) || !isVisible(rightAnkle)
-  ) return null
+  // Both legs are in the sagittal plane and usually both visible from the side.
+  const leftOk = isVisible(leftHip) && isVisible(leftKnee) && isVisible(leftAnkle)
+  const rightOk = isVisible(rightHip) && isVisible(rightKnee) && isVisible(rightAnkle)
+  if (!leftOk && !rightOk) return null
 
-  const leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle)
-  const rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
+  const leftKneeAngle = leftOk ? calculateAngle(leftHip, leftKnee, leftAnkle) : 180
+  const rightKneeAngle = rightOk ? calculateAngle(rightHip, rightKnee, rightAnkle) : 180
 
-  // Front leg = more bent knee (smaller angle); rear = less bent
   const frontKneeAngle = Math.min(leftKneeAngle, rightKneeAngle)
   const rearKneeAngle = Math.max(leftKneeAngle, rightKneeAngle)
   const frontIsLeft = leftKneeAngle <= rightKneeAngle
 
-  const midShoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 }
+  const midShoulder = { x: (lShoulder.x + rShoulder.x) / 2, y: (lShoulder.y + rShoulder.y) / 2 }
   const midHip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 }
+  const spineAngle = Math.abs(Math.atan2(midShoulder.x - midHip.x, -(midShoulder.y - midHip.y)) * (180 / Math.PI))
 
-  const spineDx = midShoulder.x - midHip.x
-  const spineDy = midShoulder.y - midHip.y
-  const spineAngle = Math.abs(Math.atan2(spineDx, -spineDy) * (180 / Math.PI))
-
-  // Valgus on the front knee
   const frontKnee = frontIsLeft ? leftKnee : rightKnee
   const frontAnkle = frontIsLeft ? leftAnkle : rightAnkle
-  const kneeValgus = frontIsLeft
-    ? frontKnee.x < frontAnkle.x
-    : frontKnee.x > frontAnkle.x
-  const kneeValgusAmount = Math.max(0,
-    frontIsLeft ? frontAnkle.x - frontKnee.x : frontKnee.x - frontAnkle.x,
-  )
+  const valgusMeasurable = vis(frontKnee) > 0.5 && vis(frontAnkle) > 0.5
+  const kneeValgus = valgusMeasurable && (frontIsLeft ? frontKnee.x < frontAnkle.x : frontKnee.x > frontAnkle.x)
+  const kneeValgusAmount = valgusMeasurable
+    ? Math.max(0, frontIsLeft ? frontAnkle.x - frontKnee.x : frontKnee.x - frontAnkle.x)
+    : 0
 
-  return {
-    kneeAngle: frontKneeAngle, // alias used by rep counter
-    frontKneeAngle,
-    rearKneeAngle,
-    spineAngle,
-    kneeValgus,
-    kneeValgusAmount,
-  }
+  return { kneeAngle: frontKneeAngle, frontKneeAngle, rearKneeAngle, spineAngle, kneeValgus, kneeValgusAmount }
 }
 
 // ─── PLANK ─────────────────────────────────────────────────────────────────
@@ -237,166 +191,98 @@ export function getPlankAngles(landmarks) {
   if (!landmarks || landmarks.length < 29) return null
 
   const nose = landmarks[0]
-  const leftShoulder = landmarks[11]
-  const rightShoulder = landmarks[12]
-  const leftElbow = landmarks[13]
-  const rightElbow = landmarks[14]
-  const leftWrist = landmarks[15]
-  const rightWrist = landmarks[16]
-  const leftHip = landmarks[23]
-  const rightHip = landmarks[24]
-  const leftAnkle = landmarks[27]
-  const rightAnkle = landmarks[28]
+  const lShoulder = landmarks[11], rShoulder = landmarks[12]
+  const lElbow = landmarks[13], rElbow = landmarks[14]
+  const lWrist = landmarks[15], rWrist = landmarks[16]
+  const lHip = landmarks[23], rHip = landmarks[24]
+  const lAnkle = landmarks[27], rAnkle = landmarks[28]
 
-  if (
-    !isVisible(leftShoulder) || !isVisible(rightShoulder) ||
-    !isVisible(leftHip) || !isVisible(rightHip) ||
-    !isVisible(leftAnkle) || !isVisible(rightAnkle)
-  ) return null
+  const useLeft = sideScore(lShoulder, lHip, lAnkle) >= sideScore(rShoulder, rHip, rAnkle)
+  const shoulder = useLeft ? lShoulder : rShoulder
+  const hip = useLeft ? lHip : rHip
+  const ankle = useLeft ? lAnkle : rAnkle
+  const elbow = useLeft ? lElbow : rElbow
+  const wrist = useLeft ? lWrist : rWrist
 
-  const midShoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 }
-  const midHip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 }
-  const midAnkle = { x: (leftAnkle.x + rightAnkle.x) / 2, y: (leftAnkle.y + rightAnkle.y) / 2 }
-  const midElbow = { x: (leftElbow.x + rightElbow.x) / 2, y: (leftElbow.y + rightElbow.y) / 2 }
+  if (!isVisible(shoulder) || !isVisible(hip) || !isVisible(ankle)) return null
 
-  // Body alignment — same math as push-up hip sag
-  const t = (midHip.x - midShoulder.x) / (midAnkle.x - midShoulder.x + 0.0001)
-  const expectedHipY = midShoulder.y + t * (midAnkle.y - midShoulder.y)
-  const hipDeviation = midHip.y - expectedHipY // positive = sag, negative = pike
+  const t = (hip.x - shoulder.x) / (ankle.x - shoulder.x + 0.0001)
+  const expectedHipY = shoulder.y + t * (ankle.y - shoulder.y)
+  const hipDeviation = hip.y - expectedHipY // + = sag, - = pike
   const hipSagAmount = Math.abs(hipDeviation)
 
-  // Elbow angle (forearm plank = ~90°; high plank = ~175°)
-  const elbowAngle = isVisible(leftElbow) && isVisible(rightElbow)
-    ? (calculateAngle(leftShoulder, leftElbow, leftWrist) + calculateAngle(rightShoulder, rightElbow, rightWrist)) / 2
-    : null
+  const elbowAngle = isVisible(elbow) && isVisible(wrist) ? calculateAngle(shoulder, elbow, wrist) : null
+  const headNeutral = shoulder.y - nose.y
 
-  // Head neutrality: nose y relative to shoulder line (negative = head too low)
-  const headNeutral = midShoulder.y - nose.y
-
-  return {
-    hipSagAmount,
-    hipDeviation,
-    elbowAngle,
-    headNeutral,
-    midShoulder,
-    midHip,
-    midAnkle,
-  }
+  return { hipSagAmount, hipDeviation, elbowAngle, headNeutral, midShoulder: shoulder, midHip: hip, midAnkle: ankle }
 }
 
 // ─── JUMP LANDING ──────────────────────────────────────────────────────────
 export function getJumpLandingAngles(landmarks) {
   if (!landmarks || landmarks.length < 29) return null
 
-  const leftShoulder = landmarks[11]
-  const rightShoulder = landmarks[12]
-  const leftHip = landmarks[23]
-  const rightHip = landmarks[24]
-  const leftKnee = landmarks[25]
-  const rightKnee = landmarks[26]
-  const leftAnkle = landmarks[27]
-  const rightAnkle = landmarks[28]
+  const leftShoulder = landmarks[11], rightShoulder = landmarks[12]
+  const leftHip = landmarks[23], rightHip = landmarks[24]
+  const leftKnee = landmarks[25], rightKnee = landmarks[26]
+  const leftAnkle = landmarks[27], rightAnkle = landmarks[28]
 
-  if (
-    !isVisible(leftHip) || !isVisible(rightHip) ||
-    !isVisible(leftKnee) || !isVisible(rightKnee) ||
-    !isVisible(leftAnkle) || !isVisible(rightAnkle)
-  ) return null
+  const leftOk = isVisible(leftHip) && isVisible(leftKnee) && isVisible(leftAnkle)
+  const rightOk = isVisible(rightHip) && isVisible(rightKnee) && isVisible(rightAnkle)
+  if (!leftOk && !rightOk) return null
 
-  const leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle)
-  const rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
-  const kneeAngle = (leftKneeAngle + rightKneeAngle) / 2
-  const kneeAsymmetry = Math.abs(leftKneeAngle - rightKneeAngle)
+  const leftKneeAngle = leftOk ? calculateAngle(leftHip, leftKnee, leftAnkle) : null
+  const rightKneeAngle = rightOk ? calculateAngle(rightHip, rightKnee, rightAnkle) : null
+  const both = leftOk && rightOk
+  const kneeAngle = both ? (leftKneeAngle + rightKneeAngle) / 2 : (leftKneeAngle ?? rightKneeAngle)
+  const kneeAsymmetry = both ? Math.abs(leftKneeAngle - rightKneeAngle) : 0
 
   const midShoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 }
   const midHip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 }
+  const spineAngle = Math.abs(Math.atan2(midShoulder.x - midHip.x, -(midShoulder.y - midHip.y)) * (180 / Math.PI))
 
-  const spineDx = midShoulder.x - midHip.x
-  const spineDy = midShoulder.y - midHip.y
-  const spineAngle = Math.abs(Math.atan2(spineDx, -spineDy) * (180 / Math.PI))
+  const valgusMeasurable = both && vis(leftKnee) > 0.5 && vis(rightKnee) > 0.5
+  const kneeValgus = valgusMeasurable && (leftKnee.x < leftAnkle.x || rightKnee.x > rightAnkle.x)
+  const kneeValgusAmount = valgusMeasurable ? Math.max(0, leftAnkle.x - leftKnee.x, rightKnee.x - rightAnkle.x) : 0
 
-  const kneeValgusLeft = leftKnee.x < leftAnkle.x
-  const kneeValgusRight = rightKnee.x > rightAnkle.x
-  const kneeValgus = kneeValgusLeft || kneeValgusRight
-  const kneeValgusAmount = Math.max(0, leftAnkle.x - leftKnee.x, rightKnee.x - rightAnkle.x)
-
-  return {
-    kneeAngle,
-    leftKneeAngle,
-    rightKneeAngle,
-    kneeAsymmetry,
-    spineAngle,
-    kneeValgus,
-    kneeValgusAmount,
-  }
+  return { kneeAngle, leftKneeAngle, rightKneeAngle, kneeAsymmetry, spineAngle, kneeValgus, kneeValgusAmount }
 }
 
 // ─── HIGH KNEES ────────────────────────────────────────────────────────────
 export function getHighKneesAngles(landmarks) {
   if (!landmarks || landmarks.length < 29) return null
 
-  const leftShoulder = landmarks[11]
-  const rightShoulder = landmarks[12]
-  const leftHip = landmarks[23]
-  const rightHip = landmarks[24]
-  const leftKnee = landmarks[25]
-  const rightKnee = landmarks[26]
+  const leftShoulder = landmarks[11], rightShoulder = landmarks[12]
+  const leftHip = landmarks[23], rightHip = landmarks[24]
+  const leftKnee = landmarks[25], rightKnee = landmarks[26]
 
-  if (
-    !isVisible(leftHip) || !isVisible(rightHip) ||
-    !isVisible(leftKnee) || !isVisible(rightKnee)
-  ) return null
+  if (!isVisible(leftHip) || !isVisible(rightHip) || !isVisible(leftKnee) || !isVisible(rightKnee)) return null
 
   const midShoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 }
   const midHip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 }
 
-  // Raised knee = higher on screen = lower y value
   const raisedKneeIsLeft = leftKnee.y < rightKnee.y
   const raisedKnee = raisedKneeIsLeft ? leftKnee : rightKnee
   const raisedHip = raisedKneeIsLeft ? leftHip : rightHip
 
-  // Hip-flexion angle: decreases as knee rises (180° = standing, ~80° = knee at hip level)
   const hipFlexionAngle = calculateAngle(midShoulder, raisedHip, raisedKnee)
-
-  // Per-leg hip flexion — needed to count each knee drive independently
   const leftHipFlexion = calculateAngle(midShoulder, leftHip, leftKnee)
   const rightHipFlexion = calculateAngle(midShoulder, rightHip, rightKnee)
-
-  // Positive = knee above hip (good for high knees)
   const kneeHeightRatio = midHip.y - raisedKnee.y
+  const spineAngle = Math.abs(Math.atan2(midShoulder.x - midHip.x, -(midShoulder.y - midHip.y)) * (180 / Math.PI))
 
-  const spineDx = midShoulder.x - midHip.x
-  const spineDy = midShoulder.y - midHip.y
-  const spineAngle = Math.abs(Math.atan2(spineDx, -spineDy) * (180 / Math.PI))
-
-  return {
-    hipFlexionAngle,
-    leftHipFlexion,
-    rightHipFlexion,
-    kneeHeightRatio,
-    spineAngle,
-    kneeAngle: hipFlexionAngle, // alias for rep counter
-  }
+  return { hipFlexionAngle, leftHipFlexion, rightHipFlexion, kneeHeightRatio, spineAngle, kneeAngle: hipFlexionAngle }
 }
 
 // ─── SUMO SQUAT TO STAND ───────────────────────────────────────────────────
 export function getSumoSquatAngles(landmarks) {
   if (!landmarks || landmarks.length < 29) return null
 
-  const leftShoulder = landmarks[11]
-  const rightShoulder = landmarks[12]
-  const leftHip = landmarks[23]
-  const rightHip = landmarks[24]
-  const leftKnee = landmarks[25]
-  const rightKnee = landmarks[26]
-  const leftAnkle = landmarks[27]
-  const rightAnkle = landmarks[28]
+  const leftShoulder = landmarks[11], rightShoulder = landmarks[12]
+  const leftHip = landmarks[23], rightHip = landmarks[24]
+  const leftKnee = landmarks[25], rightKnee = landmarks[26]
+  const leftAnkle = landmarks[27], rightAnkle = landmarks[28]
 
-  if (
-    !isVisible(leftHip) || !isVisible(rightHip) ||
-    !isVisible(leftKnee) || !isVisible(rightKnee) ||
-    !isVisible(leftAnkle) || !isVisible(rightAnkle)
-  ) return null
+  if (!isVisible(leftHip) || !isVisible(rightHip) || !isVisible(leftKnee) || !isVisible(rightKnee)) return null
 
   const leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle)
   const rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
@@ -404,88 +290,48 @@ export function getSumoSquatAngles(landmarks) {
 
   const midShoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 }
   const midHip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 }
+  const spineAngle = Math.abs(Math.atan2(midShoulder.x - midHip.x, -(midShoulder.y - midHip.y)) * (180 / Math.PI))
 
-  const spineDx = midShoulder.x - midHip.x
-  const spineDy = midShoulder.y - midHip.y
-  const spineAngle = Math.abs(Math.atan2(spineDx, -spineDy) * (180 / Math.PI))
-
-  // Stance width relative to shoulder width (sumo should be >1.4×)
   const ankleWidth = Math.abs(rightAnkle.x - leftAnkle.x)
   const shoulderWidth = Math.abs(rightShoulder.x - leftShoulder.x)
   const stanceRatio = shoulderWidth > 0.01 ? ankleWidth / shoulderWidth : 1
-
-  // Each knee should track outside its ankle (wide tracking)
   const kneesTrackingOut = leftKnee.x <= leftAnkle.x && rightKnee.x >= rightAnkle.x
 
-  return {
-    kneeAngle,
-    leftKneeAngle,
-    rightKneeAngle,
-    spineAngle,
-    stanceRatio,
-    kneesTrackingOut,
-  }
+  return { kneeAngle, leftKneeAngle, rightKneeAngle, spineAngle, stanceRatio, kneesTrackingOut }
 }
 
 // ─── BUTT KICKS ────────────────────────────────────────────────────────────
 export function getButtKicksAngles(landmarks) {
   if (!landmarks || landmarks.length < 29) return null
 
-  const leftShoulder = landmarks[11]
-  const rightShoulder = landmarks[12]
-  const leftHip = landmarks[23]
-  const rightHip = landmarks[24]
-  const leftKnee = landmarks[25]
-  const rightKnee = landmarks[26]
-  const leftAnkle = landmarks[27]
-  const rightAnkle = landmarks[28]
+  const leftShoulder = landmarks[11], rightShoulder = landmarks[12]
+  const leftHip = landmarks[23], rightHip = landmarks[24]
+  const leftKnee = landmarks[25], rightKnee = landmarks[26]
+  const leftAnkle = landmarks[27], rightAnkle = landmarks[28]
 
-  if (
-    !isVisible(leftHip) || !isVisible(rightHip) ||
-    !isVisible(leftKnee) || !isVisible(rightKnee) ||
-    !isVisible(leftAnkle) || !isVisible(rightAnkle)
-  ) return null
+  if (!isVisible(leftHip) || !isVisible(rightHip) || !isVisible(leftKnee) || !isVisible(rightKnee)) return null
 
   const leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle)
   const rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
-
-  // The bent knee is the one currently kicking
   const bentKneeAngle = Math.min(leftKneeAngle, rightKneeAngle)
 
   const midShoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 }
   const midHip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 }
+  const spineAngle = Math.abs(Math.atan2(midShoulder.x - midHip.x, -(midShoulder.y - midHip.y)) * (180 / Math.PI))
 
-  const spineDx = midShoulder.x - midHip.x
-  const spineDy = midShoulder.y - midHip.y
-  const spineAngle = Math.abs(Math.atan2(spineDx, -spineDy) * (180 / Math.PI))
-
-  return {
-    leftKneeAngle,
-    rightKneeAngle,
-    bentKneeAngle,
-    spineAngle,
-    kneeAngle: bentKneeAngle, // alias for rep counter
-  }
+  return { leftKneeAngle, rightKneeAngle, bentKneeAngle, spineAngle, kneeAngle: bentKneeAngle }
 }
 
 // ─── POGO JUMPS ────────────────────────────────────────────────────────────
 export function getPogoJumpAngles(landmarks) {
   if (!landmarks || landmarks.length < 29) return null
 
-  const leftShoulder = landmarks[11]
-  const rightShoulder = landmarks[12]
-  const leftHip = landmarks[23]
-  const rightHip = landmarks[24]
-  const leftKnee = landmarks[25]
-  const rightKnee = landmarks[26]
-  const leftAnkle = landmarks[27]
-  const rightAnkle = landmarks[28]
+  const leftShoulder = landmarks[11], rightShoulder = landmarks[12]
+  const leftHip = landmarks[23], rightHip = landmarks[24]
+  const leftKnee = landmarks[25], rightKnee = landmarks[26]
+  const leftAnkle = landmarks[27], rightAnkle = landmarks[28]
 
-  if (
-    !isVisible(leftHip) || !isVisible(rightHip) ||
-    !isVisible(leftKnee) || !isVisible(rightKnee) ||
-    !isVisible(leftAnkle) || !isVisible(rightAnkle)
-  ) return null
+  if (!isVisible(leftHip) || !isVisible(rightHip) || !isVisible(leftKnee) || !isVisible(rightKnee)) return null
 
   const leftKneeAngle = calculateAngle(leftHip, leftKnee, leftAnkle)
   const rightKneeAngle = calculateAngle(rightHip, rightKnee, rightAnkle)
@@ -494,19 +340,9 @@ export function getPogoJumpAngles(landmarks) {
 
   const midShoulder = { x: (leftShoulder.x + rightShoulder.x) / 2, y: (leftShoulder.y + rightShoulder.y) / 2 }
   const midHip = { x: (leftHip.x + rightHip.x) / 2, y: (leftHip.y + rightHip.y) / 2 }
+  const spineAngle = Math.abs(Math.atan2(midShoulder.x - midHip.x, -(midShoulder.y - midHip.y)) * (180 / Math.PI))
 
-  const spineDx = midShoulder.x - midHip.x
-  const spineDy = midShoulder.y - midHip.y
-  const spineAngle = Math.abs(Math.atan2(spineDx, -spineDy) * (180 / Math.PI))
-
-  return {
-    kneeAngle,
-    leftKneeAngle,
-    rightKneeAngle,
-    kneeAsymmetry,
-    spineAngle,
-    hipY: midHip.y, // vertical position — drives bounce-based rep counting
-  }
+  return { kneeAngle, leftKneeAngle, rightKneeAngle, kneeAsymmetry, spineAngle, hipY: midHip.y }
 }
 
 // ─── DISPATCHER ────────────────────────────────────────────────────────────

@@ -52,8 +52,8 @@ export default function Dashboard({ user }) {
   return (
     <div className="bg-slate-50 text-slate-900 min-h-screen">
       {/* Top navigation bar */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-8 border-b border-slate-200 shadow-sm">
-        <h2 className="font-bold text-2xl text-slate-900 tracking-tight">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-4 sm:px-8 border-b border-slate-200 shadow-sm gap-2">
+        <h2 className="font-bold text-lg sm:text-2xl text-slate-900 tracking-tight truncate">
           Performance Dashboard
         </h2>
         <div className="flex items-center gap-6">
@@ -68,7 +68,7 @@ export default function Dashboard({ user }) {
       </header>
 
       {/* Dashboard canvas */}
-      <div className="p-8 max-w-7xl mx-auto space-y-8">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6 sm:space-y-8">
 
         {/* ── Overview Bento Grid ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

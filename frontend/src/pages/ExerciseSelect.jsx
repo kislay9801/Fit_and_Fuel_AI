@@ -119,12 +119,12 @@ export default function ExerciseSelect() {
   return (
     <div className="bg-slate-50 text-slate-900 min-h-screen">
       {/* ── Top bar ── */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-8 border-b border-slate-200 shadow-sm">
-        <h2 className="font-bold text-2xl text-slate-900 tracking-tight">Exercise Library</h2>
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-4 sm:px-8 border-b border-slate-200 shadow-sm">
+        <h2 className="font-bold text-xl sm:text-2xl text-slate-900 tracking-tight">Exercise Library</h2>
       </header>
 
       {/* ── Main canvas ── */}
-      <main className="min-h-[calc(100vh-80px)] p-8">
+      <main className="min-h-[calc(100vh-80px)] p-4 sm:p-8">
         {/* Search + Filters */}
         <section className="max-w-7xl mx-auto mb-10">
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUserSessions } from '../firebase/firestore'
-import { Search, Filter, BarChart2, Download, CalendarDays, Clock, ChevronDown, Activity, LayoutDashboard, Dumbbell, History as HistoryIcon, User, MessageSquare } from 'lucide-react'
+import { Search, Filter, BarChart2, CalendarDays, Clock, ChevronDown, Activity, MessageSquare } from 'lucide-react'
 import AICoachChat from '../components/AICoachChat'
 import { getIssueInfo } from '../utils/issueInfo'
 
@@ -83,7 +83,7 @@ export default function History({ user }) {
     <div className="bg-slate-50 text-slate-900 min-h-screen pb-24 md:pb-8">
 
       {/* ── Top App Bar ── */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-8 border-b border-slate-200 shadow-sm">
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-4 sm:px-8 border-b border-slate-200 shadow-sm gap-2">
         <div className="flex items-center gap-6">
           <span className="font-bold text-2xl text-slate-900 tracking-tight">History</span>
         </div>
@@ -108,7 +108,7 @@ export default function History({ user }) {
       )}
 
       {/* ── Page content ── */}
-      <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
+      <div className="p-4 sm:p-6 md:p-8 space-y-6 max-w-7xl mx-auto w-full">
 
         {/* ── Stats + Sparkline ── */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -214,10 +214,6 @@ export default function History({ user }) {
             </select>
           </div>
           <div className="flex-1" />
-          <button className="hidden sm:flex bg-white border border-slate-300 text-slate-700 font-semibold px-5 py-2.5 rounded-lg hover:bg-slate-50 transition-colors text-sm shadow-sm items-center gap-2">
-            <Download className="w-4 h-4" />
-            Export Data
-          </button>
           <button
             onClick={() => { setFilterExercise('all'); setFilterScore('all'); setSearch('') }}
             className="px-5 py-2.5 text-blue-600 font-semibold text-sm hover:bg-blue-50 hover:text-blue-700 transition-colors rounded-lg"
@@ -364,25 +360,6 @@ export default function History({ user }) {
           </div>
         )}
       </div>
-
-      {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 z-40 px-6 py-3 flex justify-between items-center shadow-[0_-4px_10px_rgba(0,0,0,0.02)]">
-        {[
-          { path: '/dashboard', icon: LayoutDashboard, label: 'Home'    },
-          { path: '/exercises', icon: Dumbbell,        label: 'Library' },
-          { path: '/history',   icon: HistoryIcon,     label: 'History', active: true },
-          { path: '/dashboard', icon: User,            label: 'Profile' },
-        ].map(({ path, icon: Icon, label, active }) => (
-          <a
-            key={label}
-            href={path}
-            className={`flex flex-col items-center gap-1 p-1 ${active ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            <Icon className={`w-6 h-6 ${active ? 'fill-blue-50' : ''}`} />
-            <span className={`text-[10px] font-semibold ${active ? 'text-blue-600' : 'text-slate-500'}`}>{label}</span>
-          </a>
-        ))}
-      </nav>
     </div>
   )
 }
