@@ -6,9 +6,12 @@ import { Plus, TrendingUp, Award, ShieldCheck, ArrowRight, Activity, CalendarDay
 
 const exerciseEmoji = { squat: '🏋️', pushup: '💪', deadlift: '🔥' }
 
-// Trend window options (label → days)
-const PERIODS = { '7D': 7, '1M': 30, '6M': 180 }
-const PERIOD_LABEL = { '7D': '7 days', '1M': 'month', '6M': '6 months' }
+// Caption text per trend range
+const PERIOD_CAPTION = {
+  '7D': 'Avg form score by day — last 7 days',
+  '1M': 'Avg form score by date — last 30 days',
+  '6M': 'Avg form score by month — last 6 months',
+}
 
 /**
  * Builds a recommendation from the user's actual session data — their most
@@ -47,6 +50,68 @@ function buildRecommendation(sessions, avgScore) {
   }
 }
 
+const scoreOf = s => Math.round(s.score ?? s.form_score ?? 0)
+const dateOf = s => (s.createdAt instanceof Date ? s.createdAt : new Date(s.createdAt))
+const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x }
+
+function avgScore(list) {
+  return list.length ? Math.round(list.reduce((a, s) => a + scoreOf(s), 0) / list.length) : null
+}
+
+/**
+ * Aggregates sessions into trend buckets that differ by the selected range:
+ *   7D → one bucket per day for the last 7 days
+ *   1M → one bucket per day for the last 30 days
+ *   6M → one bucket per calendar month for the last 6 months
+ * Each bucket: { key, label, sub, count, avg } (avg = null when no activity).
+ * Uses the real current date.
+ */
+function buildTrend(sessions, period) {
+  const now = new Date()
+
+  if (period === '6M') {
+    const buckets = []
+    for (let i = 5; i >= 0; i--) {
+      const start = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const end = new Date(now.getFullYear(), now.getMonth() - i + 1, 1)
+      const inRange = sessions.filter(s => { const d = dateOf(s); return d >= start && d < end })
+      buckets.push({
+        key: `${start.getFullYear()}-${start.getMonth()}`,
+        label: start.toLocaleDateString('en-US', { month: 'short' }),
+        sub: start.getFullYear() !== now.getFullYear() ? `'${String(start.getFullYear()).slice(2)}` : '',
+        count: inRange.length,
+        avg: avgScore(inRange),
+      })
+    }
+    return buckets
+  }
+
+  // Daily buckets for 7D / 1M
+  const days = period === '7D' ? 7 : 30
+  const buckets = []
+  for (let i = days - 1; i >= 0; i--) {
+    const day = startOfDay(now); day.setDate(day.getDate() - i)
+    const next = new Date(day); next.setDate(day.getDate() + 1)
+    const inRange = sessions.filter(s => { const d = dateOf(s); return d >= day && d < next })
+    buckets.push({
+      key: day.toISOString().slice(0, 10),
+      label: period === '7D' ? day.toLocaleDateString('en-US', { weekday: 'short' }) : String(day.getDate()),
+      sub: period === '7D' ? String(day.getDate()) : '',
+      count: inRange.length,
+      avg: avgScore(inRange),
+    })
+  }
+  return buckets
+}
+
+function barColor(avg) {
+  if (avg == null) return 'bg-slate-200'
+  if (avg >= 90) return 'bg-emerald-500'
+  if (avg >= 75) return 'bg-blue-500'
+  if (avg >= 55) return 'bg-amber-500'
+  return 'bg-red-500'
+}
+
 function scoreBand(score) {
   if (score >= 90) return { label: 'Optimal',         cls: 'bg-emerald-100 text-emerald-800 border-emerald-200' }
   if (score >= 75) return { label: 'Stable',          cls: 'bg-blue-100 text-blue-800 border-blue-200' }
@@ -74,17 +139,12 @@ export default function Dashboard({ user }) {
   const hasSessions = !loading && sessions.length > 0
   const recent = sessions.slice(0, 5) // most recent, for the table
 
-  // Trend bars: real sessions within the selected time window (oldest → newest)
-  const cutoff = Date.now() - PERIODS[period] * 86_400_000
-  const trendBars = sessions
-    .filter(s => {
-      const d = s.createdAt instanceof Date ? s.createdAt : new Date(s.createdAt)
-      return d.getTime() >= cutoff
-    })
-    .slice(0, 14)
-    .reverse()
+  // Trend buckets — aggregated by day (7D/1M) or month (6M) over real dates
+  const trend = buildTrend(sessions, period)
+  const trendActive = trend.filter(b => b.count > 0).length
 
-  const recommendation = buildRecommendation(sessions, stats?.avgFormScore ?? 0)
+  // Recommendation reflects recent form (last ~20 sessions), not all-time
+  const recommendation = buildRecommendation(sessions.slice(0, 20), stats?.avgFormScore ?? 0)
 
   useEffect(() => {
     if (!user?.uid) return
@@ -93,7 +153,7 @@ export default function Dashboard({ user }) {
     async function load() {
       const [{ stats: s }, { sessions: all }] = await Promise.all([
         getDashboardStats(user.uid),
-        getRecentSessions(user.uid, 60),
+        getRecentSessions(user.uid, 150), // enough history to fill the 6-month view
       ])
       if (!cancelled) {
         setStats(s)
@@ -205,7 +265,7 @@ export default function Dashboard({ user }) {
                 ))}
               </div>
             </div>
-            <div className="h-64 relative flex items-end justify-between gap-1.5 px-2 border-b border-slate-200">
+            <div className={`h-64 relative flex items-end ${period === '1M' ? 'gap-0.5' : 'gap-1.5'} px-2 border-b border-slate-200`}>
               <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
                 {[0,1,2].map(i => <div key={i} className="border-t border-slate-100 w-full" />)}
               </div>
@@ -219,32 +279,43 @@ export default function Dashboard({ user }) {
                   <span>No activity yet</span>
                   <span className="text-xs font-normal mt-1">Complete a session to see your form trend</span>
                 </div>
-              ) : trendBars.length === 0 ? (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-400 text-sm font-semibold">
-                  <span>No activity in the last {PERIOD_LABEL[period]}</span>
-                  <span className="text-xs font-normal mt-1">Try a wider range or train to add data</span>
-                </div>
               ) : (
-                trendBars.map((s, i) => {
-                  const pct = Math.round(s.score ?? s.form_score ?? 0)
-                  const isLast = i === trendBars.length - 1
+                trend.map((b) => {
+                  const tip = b.count > 0
+                    ? `${b.label}${b.sub ? ' ' + b.sub : ''}: ${b.count} session${b.count > 1 ? 's' : ''} · avg ${b.avg}`
+                    : `${b.label}${b.sub ? ' ' + b.sub : ''}: No activity`
                   return (
-                    <div key={s.id ?? i} className="relative group flex-1 min-w-0 flex flex-col justify-end h-full">
-                      <div className={`w-full rounded-t-md transition-colors duration-300 ${isLast ? 'bg-blue-600' : 'bg-slate-200 hover:bg-slate-300'}`} style={{ height: `${Math.max(pct, 2)}%` }}>
-                        <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-2.5 py-1 rounded-md text-xs font-bold whitespace-nowrap shadow-lg">
-                          {pct}
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
-                        </div>
+                    <div key={b.key} className="relative group flex-1 min-w-0 flex flex-col justify-end h-full">
+                      {b.avg != null ? (
+                        <div className={`w-full rounded-t-md transition-colors ${barColor(b.avg)}`} style={{ height: `${Math.max(b.avg, 3)}%` }} />
+                      ) : (
+                        <div className="w-full h-1 rounded bg-slate-200/70" />
+                      )}
+                      <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-2.5 py-1 rounded-md text-xs font-semibold whitespace-nowrap shadow-lg z-10 pointer-events-none">
+                        {tip}
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
                       </div>
                     </div>
                   )
                 })
               )}
             </div>
-            <p className="text-xs text-slate-400 font-medium mt-3 px-2">
-              {hasSessions && trendBars.length > 0
-                ? `Showing your last ${trendBars.length} session${trendBars.length > 1 ? 's' : ''} (${PERIOD_LABEL[period]})`
-                : 'Form score per session'}
+
+            {/* Axis labels (aligned to bars; sparse for the 30-day view) */}
+            {hasSessions && !loading && (
+              <div className={`flex ${period === '1M' ? 'gap-0.5' : 'gap-1.5'} mt-2 px-2`}>
+                {trend.map((b, i) => (
+                  <div key={b.key} className="flex-1 min-w-0 text-center text-[10px] font-bold text-slate-400 truncate">
+                    {period === '1M' && i % 5 !== 0 && i !== trend.length - 1 ? '' : b.label}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <p className="text-xs text-slate-400 font-medium mt-2 px-2">
+              {hasSessions
+                ? `${PERIOD_CAPTION[period]} · ${trendActive} active ${period === '6M' ? 'month' : 'day'}${trendActive === 1 ? '' : 's'}`
+                : PERIOD_CAPTION[period]}
             </p>
           </div>
 

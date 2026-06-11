@@ -489,7 +489,24 @@ export default function Session({ user }) {
 
               {/* Action / Status bar */}
               <div className="flex flex-col gap-3">
-                {isActive && analyzedFrames > 0 && (
+                {/* Live camera: a Stop control is always available while the camera runs */}
+                {mode === 'camera' && !sessionEnded && (
+                  <button
+                    onClick={analyzedFrames > 0 ? endSession : startNew}
+                    disabled={isSaving}
+                    className="flex items-center justify-center gap-2 w-full py-4 bg-red-50 border border-red-200 rounded-xl text-red-600 font-extrabold hover:bg-red-100 hover:text-red-700 transition-colors shadow-sm disabled:opacity-60"
+                  >
+                    <Square className="w-4 h-4 fill-current" />
+                    {isSaving
+                      ? 'Saving Session...'
+                      : analyzedFrames > 0
+                        ? 'Stop & Get Coaching Summary'
+                        : 'Stop Camera'}
+                  </button>
+                )}
+
+                {/* Upload: allow ending early once frames have been analyzed */}
+                {mode === 'upload' && isActive && analyzedFrames > 0 && (
                   <button
                     onClick={endSession}
                     disabled={isSaving}

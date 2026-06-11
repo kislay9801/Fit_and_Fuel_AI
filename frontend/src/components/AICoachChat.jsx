@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Send, Loader2, Bot, User, X } from 'lucide-react'
+import MarkdownMessage from './MarkdownMessage'
 
 export default function AICoachChat({ sessions, onClose }) {
   const [messages, setMessages] = useState([
@@ -69,7 +70,7 @@ export default function AICoachChat({ sessions, onClose }) {
   }
 
   return (
-    <div className="flex flex-col h-[500px] w-full max-w-md bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50">
+    <div className="flex flex-col w-full sm:w-[400px] h-[70vh] max-h-[560px] sm:h-[500px] bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden z-50">
       {/* Header */}
       <div className="bg-blue-600 text-white p-4 flex items-center justify-between shadow-sm z-10">
         <div className="flex items-center gap-3">
@@ -102,11 +103,11 @@ export default function AICoachChat({ sessions, onClose }) {
                 </div>
                 {/* Bubble */}
                 <div className={`p-3 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                  isUser 
-                    ? 'bg-blue-600 text-white rounded-tr-sm' 
+                  isUser
+                    ? 'bg-blue-600 text-white rounded-tr-sm'
                     : 'bg-white border border-slate-200 text-slate-700 rounded-tl-sm'
                 }`}>
-                  {msg.text}
+                  {isUser ? msg.text : <MarkdownMessage text={msg.text} />}
                 </div>
               </div>
             </div>

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Timer, Zap, ArrowUpRight, ZoomIn } from 'lucide-react';
 import ImageModal from '../../components/ImageModal';
-import BackToDashboard from '../../components/BackToDashboard';
 
 export default function Warmups() {
   const [modalImage, setModalImage] = useState(null);
@@ -42,7 +41,6 @@ export default function Warmups() {
   return (
     <>
       <div className="max-w-5xl mx-auto space-y-12 px-4 sm:px-6 pt-6 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <BackToDashboard />
         
         {/* Header Section */}
         <div 

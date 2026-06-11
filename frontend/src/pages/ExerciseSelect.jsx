@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search, Play, Lock, Dumbbell, ShieldCheck, Activity } from 'lucide-react'
-import BackToDashboard from '../components/BackToDashboard'
 
 const exercises = [
   {
@@ -120,11 +119,8 @@ export default function ExerciseSelect() {
   return (
     <div className="bg-slate-50 text-slate-900 min-h-screen">
       {/* ── Top bar ── */}
-      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-4 sm:px-8 border-b border-slate-200 shadow-sm gap-3">
-        <div className="flex items-center gap-3 min-w-0">
-          <BackToDashboard />
-          <h2 className="font-bold text-xl sm:text-2xl text-slate-900 tracking-tight truncate">Exercise Library</h2>
-        </div>
+      <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-4 sm:px-8 border-b border-slate-200 shadow-sm">
+        <h2 className="font-bold text-xl sm:text-2xl text-slate-900 tracking-tight">Exercise Library</h2>
       </header>
 
       {/* ── Main canvas ── */}

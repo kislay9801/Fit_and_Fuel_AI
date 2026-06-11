@@ -3,6 +3,7 @@ import { Sparkles, TrendingUp, AlertCircle, Loader2, RefreshCw } from 'lucide-re
 import { getCoachingSummary } from '../utils/api'
 import { getIssueInfo } from '../utils/issueInfo'
 import { isRepBased } from '../utils/formScoring'
+import MarkdownMessage from './MarkdownMessage'
 
 function localCoachingFallback(sessionData) {
   const exercise = sessionData.exercise || 'exercise'
@@ -175,9 +176,7 @@ export default function CoachingSummary({ sessionData }) {
         )}
 
         {summary && !loading && (
-          <div className="text-slate-700 text-[15px] leading-relaxed whitespace-pre-wrap font-medium">
-            {summary}
-          </div>
+          <MarkdownMessage text={summary} className="text-slate-700 text-[15px] leading-relaxed font-medium" />
         )}
       </div>
     </div>

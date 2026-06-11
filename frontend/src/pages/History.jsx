@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { getUserSessions } from '../firebase/firestore'
 import { Search, Filter, BarChart2, CalendarDays, Clock, ChevronDown, Activity, MessageSquare } from 'lucide-react'
 import AICoachChat from '../components/AICoachChat'
-import BackToDashboard from '../components/BackToDashboard'
 import { getIssueInfo } from '../utils/issueInfo'
 
 const exerciseEmoji = { squat: '🏋️', pushup: '💪', deadlift: '🔥' }
@@ -86,7 +85,6 @@ export default function History({ user }) {
       {/* ── Top App Bar ── */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-4 sm:px-8 border-b border-slate-200 shadow-sm gap-2">
         <div className="flex items-center gap-3 min-w-0">
-          <BackToDashboard />
           <span className="font-bold text-xl sm:text-2xl text-slate-900 tracking-tight truncate">History</span>
         </div>
         <div className="flex items-center gap-4">
@@ -104,7 +102,7 @@ export default function History({ user }) {
 
       {/* ── AI Coach Floating Window ── */}
       {isChatOpen && (
-        <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+        <div className="fixed z-50 inset-x-3 bottom-24 sm:inset-x-auto sm:right-6 sm:bottom-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
           <AICoachChat sessions={sessions} onClose={() => setIsChatOpen(false)} />
         </div>
       )}
@@ -141,9 +139,9 @@ export default function History({ user }) {
           {/* Sparkline trend */}
           <div className="lg:col-span-8 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
             <div className="flex-1 w-full relative z-10">
-              <div className="flex justify-between items-start mb-1">
+              <div className="flex flex-wrap justify-between items-center gap-2 mb-1">
                 <h3 className="font-bold text-lg text-slate-900 tracking-tight">Form Precision Trend</h3>
-                <button 
+                <button
                   onClick={() => setIsChatOpen(true)}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2"
                 >
@@ -259,19 +257,19 @@ export default function History({ user }) {
               return (
                 <div
                   key={s.id}
-                  className="bg-white p-6 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all group"
+                  className="bg-white p-4 sm:p-6 rounded-xl border border-slate-200 hover:border-blue-300 hover:shadow-md transition-all group"
                 >
-                  <div className="flex flex-col md:flex-row md:items-center gap-6">
-                    {/* Exercise icon + name */}
-                    <div className="flex items-center gap-5 flex-1">
-                      <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-100 flex-shrink-0 flex items-center justify-center text-3xl shadow-sm">
+                  {/* Top: exercise + score (always visible) */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 sm:gap-5 min-w-0">
+                      <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-slate-50 border border-slate-100 flex-shrink-0 flex items-center justify-center text-2xl sm:text-3xl shadow-sm">
                         {exerciseEmoji[s.exercise] || '💪'}
                       </div>
-                      <div>
-                        <h4 className="font-bold text-lg text-slate-900 capitalize tracking-tight mb-1">
+                      <div className="min-w-0">
+                        <h4 className="font-bold text-base sm:text-lg text-slate-900 capitalize tracking-tight mb-1 truncate">
                           {s.exercise}
                         </h4>
-                        <div className="flex items-center gap-5 text-sm font-medium text-slate-500">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs sm:text-sm font-medium text-slate-500">
                           <span className="flex items-center gap-1.5">
                             <CalendarDays className="w-4 h-4 text-slate-400" />
                             {date}
@@ -284,46 +282,28 @@ export default function History({ user }) {
                       </div>
                     </div>
 
-                    {/* Metrics */}
-                    <div className="flex items-center gap-8 md:gap-12 flex-shrink-0">
-                      {/* Score */}
-                      <div className="flex flex-col items-center">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Form Score</span>
-                        <div className="flex items-center gap-2">
-                          <span className={`font-extrabold text-3xl ${scoreColor(score)}`}>{score}</span>
-                          <span className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide border ${badge.cls}`}>
-                            {badge.label}
-                          </span>
-                        </div>
-                      </div>
+                    <div className="flex flex-col items-end flex-shrink-0">
+                      <span className={`font-extrabold text-2xl sm:text-3xl leading-none ${scoreColor(score)}`}>{score}</span>
+                      <span className={`mt-1 px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide border ${badge.cls}`}>
+                        {badge.label}
+                      </span>
+                    </div>
+                  </div>
 
-                      {/* Reps */}
+                  {/* Reps + issues (always visible) */}
+                  {((s.reps != null && s.reps > 0) || s.issues?.length > 0) && (
+                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-4 pt-4 border-t border-slate-100">
                       {(s.reps != null && s.reps > 0) && (
-                        <div className="hidden sm:flex flex-col items-center">
-                          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Reps</span>
-                          <span className="font-extrabold text-2xl text-slate-900">{s.reps}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Reps</span>
+                          <span className="font-extrabold text-lg text-slate-900">{s.reps}</span>
                         </div>
                       )}
-
-                      {/* AI Coaching snippet */}
-                      {s.coachingSummary && (
-                        <div className="hidden lg:block max-w-xs border-l border-slate-200 pl-8">
-                          <span className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-1 mb-1.5">
-                            <Activity className="w-3.5 h-3.5" />
-                            AI Coach
-                          </span>
-                          <p className="text-sm font-medium italic text-slate-700 leading-snug line-clamp-2">
-                            "{s.coachingSummary.split('\n\n')[0]}"
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Risk flags */}
                       {s.issues?.length > 0 && (
-                        <div className="hidden xl:flex flex-col gap-2 min-w-[120px]">
-                          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Issues detected</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Issues</span>
                           <div className="flex flex-wrap gap-1.5">
-                            {s.issues.slice(0, 2).map(issue => {
+                            {s.issues.slice(0, 3).map(issue => {
                               const info = getIssueInfo(issue)
                               return (
                                 <span
@@ -339,7 +319,20 @@ export default function History({ user }) {
                         </div>
                       )}
                     </div>
-                  </div>
+                  )}
+
+                  {/* AI Coaching snippet (always visible) */}
+                  {s.coachingSummary && (
+                    <div className="mt-3 bg-blue-50/40 border border-blue-100 rounded-lg p-3">
+                      <span className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-1 mb-1">
+                        <Activity className="w-3.5 h-3.5" />
+                        AI Coach
+                      </span>
+                      <p className="text-sm font-medium italic text-slate-700 leading-snug line-clamp-2">
+                        "{s.coachingSummary.split('\n\n')[0]}"
+                      </p>
+                    </div>
+                  )}
                 </div>
               )
             })}

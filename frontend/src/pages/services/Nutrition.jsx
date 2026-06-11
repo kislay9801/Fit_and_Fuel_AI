@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Apple, Leaf, Droplet, Flame, ZoomIn } from 'lucide-react';
 import ImageModal from '../../components/ImageModal';
-import BackToDashboard from '../../components/BackToDashboard';
 
 export default function Nutrition() {
   const [modalImage, setModalImage] = useState(null);
@@ -66,7 +65,6 @@ export default function Nutrition() {
   return (
     <>
       <div className="max-w-5xl mx-auto space-y-12 px-4 sm:px-6 pt-6 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-        <BackToDashboard />
 
         {/* Header Section */}
         <div 
