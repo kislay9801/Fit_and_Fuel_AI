@@ -1,75 +1,86 @@
 /**
- * Rep counting + per-rep peak capture.
+ * Rep counting + per-rep peak capture — adaptive (range-of-motion relative).
  *
- * Detection modes:
- *  - 'angle'       : one down→up cycle of a single tracking joint angle
- *                    (squat, push-up, lunge, sumo squat, jump landing). The
- *                    "effort" is at the SMALLEST angle, so the deepest frame of
- *                    each rep is remembered and used for scoring.
- *  - 'alternating' : left/right limbs cycle independently (high knees, butt
- *                    kicks). Each limb runs its own down→up state machine and
- *                    every drive/kick counts. Using a single min()/max() signal
- *                    here fails, because one limb is always flexed so the shared
- *                    angle never returns to the "up" position.
- *  - 'vertical'    : each vertical bounce of the body (pogo jumps), where the
- *                    knee barely flexes and angle thresholds can't work.
- *  - 'none'        : isometric holds (plank) — no reps.
+ * Why adaptive instead of fixed thresholds:
+ *   A fixed rule like "knee must exceed 158° to finish a rep" fails badly with
+ *   a 2D camera — depending on distance and angle, a fully straight leg can read
+ *   anywhere from ~150° to ~178°. If the camera reads a straight leg at 152°, a
+ *   158° threshold is never crossed and the rep counter stays at zero even after
+ *   many real reps.
  *
- * Thresholds use hysteresis (separate down/up values) and are deliberately
- * loose, because 2D camera projection makes a "straight" joint read well below
- * 180° and a "bent" joint read above its true value.
+ *   Instead we detect a rep whenever the tracked joint angle DIPS and then
+ *   RECOVERS by at least `minAmp` degrees, measured relative to the local
+ *   extremes the person actually hits. This self-calibrates to any camera angle,
+ *   body, and depth, and the deepest frame of each dip is captured for scoring.
+ *
+ * Modes:
+ *   'angle'       – one joint signal (squat, push-up, lunge, sumo, deadlift,
+ *                   jump landing). Effort = smallest angle.
+ *   'alternating' – left/right limbs cycle independently (high knees, butt
+ *                   kicks); each limb is its own detector and both legs count.
+ *   'vertical'    – body bounce for pogo jumps (knees barely bend).
+ *   'none'        – isometric hold (plank), no reps.
  */
 
 function getConfig(exercise) {
   switch (exercise) {
-    case 'squat':       return { mode: 'angle', key: 'kneeAngle',  down: 140, up: 158 }
-    case 'lunge':       return { mode: 'angle', key: 'kneeAngle',  down: 140, up: 158 }
-    case 'sumoSquat':   return { mode: 'angle', key: 'kneeAngle',  down: 135, up: 158 }
-    case 'pushup':      return { mode: 'angle', key: 'elbowAngle', down: 110, up: 150 }
-    case 'deadlift':    return { mode: 'angle', key: 'kneeAngle',  down: 150, up: 166 }
-    case 'jumpLanding': return { mode: 'angle', key: 'kneeAngle',  down: 150, up: 166 }
-    case 'highKnees':   return { mode: 'alternating', leftKey: 'leftHipFlexion', rightKey: 'rightHipFlexion', down: 130, up: 155 }
-    case 'buttKicks':   return { mode: 'alternating', leftKey: 'leftKneeAngle',  rightKey: 'rightKneeAngle',  down: 110, up: 150 }
+    case 'squat':       return { mode: 'angle', key: 'kneeAngle',  minAmp: 28 }
+    case 'lunge':       return { mode: 'angle', key: 'kneeAngle',  minAmp: 26 }
+    case 'sumoSquat':   return { mode: 'angle', key: 'kneeAngle',  minAmp: 26 }
+    case 'pushup':      return { mode: 'angle', key: 'elbowAngle', minAmp: 26 }
+    case 'deadlift':    return { mode: 'angle', key: 'kneeAngle',  minAmp: 20 }
+    case 'jumpLanding': return { mode: 'angle', key: 'kneeAngle',  minAmp: 22 }
+    case 'highKnees':   return { mode: 'alternating', leftKey: 'leftHipFlexion', rightKey: 'rightHipFlexion', minAmp: 28 }
+    case 'buttKicks':   return { mode: 'alternating', leftKey: 'leftKneeAngle',  rightKey: 'rightKneeAngle',  minAmp: 34 }
     case 'pogoJump':    return { mode: 'vertical', key: 'hipY', minAmplitude: 0.008, peakKey: 'kneeAngle' }
     case 'plank':       return { mode: 'none' }
-    default:            return { mode: 'angle', key: 'kneeAngle', down: 140, up: 158 }
+    default:            return { mode: 'angle', key: 'kneeAngle', minAmp: 28 }
   }
 }
 
-/** One down→up state machine that also remembers the deepest frame of the rep. */
+/**
+ * Adaptive valley detector for a single limb/joint.
+ * Tracking value convention: SMALLER = more effort (deeper). Counts a rep when
+ * the value dips `minAmp` below a local high and then recovers `minAmp` above
+ * the dip's lowest point. The lowest frame's snapshot is returned for scoring.
+ */
 class Limb {
-  constructor(down, up) {
-    this.down = down
-    this.up = up
-    this.phase = 'up'
-    this.peakAngle = null
-    this.peakSnapshot = null
+  constructor(minAmp) {
+    this.minAmp = minAmp
+    this.reset()
   }
 
-  /** Returns the peak-angles snapshot if a rep just completed, else null. */
-  update(tracking, snapshot) {
-    if (tracking === null || tracking === undefined) return null
+  reset() {
+    this.phase = 'up'      // 'up' = extended / between reps, 'down' = inside a dip
+    this.refHigh = null    // highest (most extended) value seen since last rep
+    this.valley = null     // lowest value within the current dip
+    this.valleySnap = null // full angles snapshot at the valley
+  }
+
+  /** Returns the valley snapshot when a rep completes, else null. */
+  update(x, snapshot) {
+    if (x === null || x === undefined || Number.isNaN(x)) return null
+    if (this.refHigh === null) { this.refHigh = x; return null }
 
     if (this.phase === 'up') {
-      if (tracking < this.down) {
+      if (x > this.refHigh) this.refHigh = x        // track the local high
+      if (x < this.refHigh - this.minAmp) {          // dipped enough → entering a rep
         this.phase = 'down'
-        this.peakAngle = tracking
-        this.peakSnapshot = snapshot
+        this.valley = x
+        this.valleySnap = snapshot
       }
       return null
     }
 
-    // phase === 'down': track the deepest frame
-    if (this.peakAngle === null || tracking < this.peakAngle) {
-      this.peakAngle = tracking
-      this.peakSnapshot = snapshot
-    }
-    if (tracking > this.up) {
+    // phase === 'down': remember the deepest point, watch for recovery
+    if (x < this.valley) { this.valley = x; this.valleySnap = snapshot }
+    if (x > this.valley + this.minAmp) {             // recovered enough → rep complete
+      const snap = this.valleySnap
       this.phase = 'up'
-      const peak = this.peakSnapshot
-      this.peakAngle = null
-      this.peakSnapshot = null
-      return peak // rep complete
+      this.refHigh = x                               // reset local high for next rep
+      this.valley = null
+      this.valleySnap = null
+      return snap
     }
     return null
   }
@@ -85,12 +96,12 @@ export class RepCounter {
   reset() {
     this.repCount = 0
     this._completedPeak = null
-    const { mode, down, up } = this.config
+    const { mode, minAmp } = this.config
     if (mode === 'angle') {
-      this._limb = new Limb(down, up)
+      this._limb = new Limb(minAmp)
     } else if (mode === 'alternating') {
-      this._left = new Limb(down, up)
-      this._right = new Limb(down, up)
+      this._left = new Limb(minAmp)
+      this._right = new Limb(minAmp)
     } else if (mode === 'vertical') {
       this._prevY = null
       this._prevVel = 0
@@ -113,10 +124,7 @@ export class RepCounter {
 
   _updateAngle(angles) {
     const peak = this._limb.update(angles[this.config.key], angles)
-    if (peak) {
-      this.repCount += 1
-      this._completedPeak = peak
-    }
+    if (peak) { this.repCount += 1; this._completedPeak = peak }
     return this.repCount
   }
 

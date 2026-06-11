@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUserSessions } from '../firebase/firestore'
-import { Search, Bell, Filter, BarChart2, Download, CalendarDays, Clock, ChevronDown, Activity, LayoutDashboard, Dumbbell, History as HistoryIcon, User, MessageSquare } from 'lucide-react'
+import { Search, Filter, BarChart2, Download, CalendarDays, Clock, ChevronDown, Activity, LayoutDashboard, Dumbbell, History as HistoryIcon, User, MessageSquare } from 'lucide-react'
 import AICoachChat from '../components/AICoachChat'
 
 const exerciseEmoji = { squat: '🏋️', pushup: '💪', deadlift: '🔥' }
@@ -96,9 +96,6 @@ export default function History({ user }) {
               onChange={e => setSearch(e.target.value)}
             />
           </div>
-          <button className="p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all">
-            <Bell className="w-5 h-5" />
-          </button>
         </div>
       </header>
 

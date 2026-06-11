@@ -2,76 +2,88 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import { RepCounter } from './repCounting.js'
 
-describe('RepCounter', () => {
-  it('counts one squat rep only after a down-up cycle', () => {
+describe('RepCounter (adaptive)', () => {
+  it('counts one squat rep after a dip-and-recover cycle', () => {
     const counter = new RepCounter('squat')
-
-    assert.equal(counter.update({ kneeAngle: 170 }), 0)
-    assert.equal(counter.update({ kneeAngle: 100 }), 0)
+    assert.equal(counter.update({ kneeAngle: 170 }), 0) // standing
+    assert.equal(counter.update({ kneeAngle: 90 }), 0)  // bottom
     assert.equal(counter.getPhase(), 'down')
-    assert.equal(counter.update({ kneeAngle: 165 }), 1)
+    assert.equal(counter.update({ kneeAngle: 165 }), 1) // back up → 1 rep
     assert.equal(counter.getPhase(), 'up')
   })
 
-  it('does not double count while staying below or above thresholds', () => {
-    const counter = new RepCounter('pushup')
-
-    counter.update({ elbowAngle: 80 })
-    counter.update({ elbowAngle: 75 })
-    assert.equal(counter.getCount(), 0)
-
-    counter.update({ elbowAngle: 150 })
-    counter.update({ elbowAngle: 160 })
+  it('counts reps even when the camera reads a "straight" leg well below 180', () => {
+    // Foreshortened view: extended knee only reads ~150°. Old fixed-threshold
+    // logic (needs >158°) would count ZERO here; adaptive logic still works.
+    const counter = new RepCounter('squat')
+    counter.update({ kneeAngle: 150 })
+    counter.update({ kneeAngle: 95 })
+    counter.update({ kneeAngle: 148 })
     assert.equal(counter.getCount(), 1)
+  })
+
+  it('does not double count while holding the bottom or top', () => {
+    const counter = new RepCounter('squat')
+    counter.update({ kneeAngle: 170 })
+    counter.update({ kneeAngle: 90 })
+    counter.update({ kneeAngle: 90 })
+    counter.update({ kneeAngle: 90 })
+    assert.equal(counter.getCount(), 0)
+    counter.update({ kneeAngle: 168 })
+    counter.update({ kneeAngle: 168 })
+    assert.equal(counter.getCount(), 1)
+  })
+
+  it('counts several consecutive reps', () => {
+    const counter = new RepCounter('squat')
+    const frames = [175, 92, 170, 95, 168, 90, 172] // 3 dips
+    frames.forEach(kneeAngle => counter.update({ kneeAngle }))
+    assert.equal(counter.getCount(), 3)
+  })
+
+  it('ignores small bobs below the minimum amplitude', () => {
+    const counter = new RepCounter('squat')
+    // only a ~15° wobble — less than the 28° minAmp — is not a rep
+    ;[172, 160, 158, 165, 172].forEach(kneeAngle => counter.update({ kneeAngle }))
+    assert.equal(counter.getCount(), 0)
   })
 
   it('captures the deepest frame of each rep as the peak', () => {
     const counter = new RepCounter('squat')
-
-    counter.update({ kneeAngle: 170 })           // standing
-    counter.update({ kneeAngle: 120, depth: 'a' }) // descending
+    counter.update({ kneeAngle: 170 })
+    counter.update({ kneeAngle: 120, depth: 'a' })
     counter.update({ kneeAngle: 85, depth: 'b' })  // deepest
-    counter.update({ kneeAngle: 110, depth: 'c' }) // ascending
+    counter.update({ kneeAngle: 110, depth: 'c' })
     counter.update({ kneeAngle: 165, depth: 'd' }) // completes rep
-
     const peak = counter.popCompletedRep()
-    assert.ok(peak, 'a completed rep peak should be available')
-    assert.equal(peak.kneeAngle, 85)             // the deepest frame
+    assert.ok(peak)
+    assert.equal(peak.kneeAngle, 85)
     assert.equal(peak.depth, 'b')
-    // peak is consumed once
-    assert.equal(counter.popCompletedRep(), null)
+    assert.equal(counter.popCompletedRep(), null) // consumed once
   })
 
   it('counts each leg independently for alternating exercises (butt kicks)', () => {
     const counter = new RepCounter('buttKicks')
-
-    // Left kicks up and down (right stays straight) -> 1 rep
     counter.update({ leftKneeAngle: 170, rightKneeAngle: 170 })
-    counter.update({ leftKneeAngle: 50,  rightKneeAngle: 170 })
-    counter.update({ leftKneeAngle: 165, rightKneeAngle: 170 })
+    counter.update({ leftKneeAngle: 45,  rightKneeAngle: 170 }) // left kick down
+    counter.update({ leftKneeAngle: 165, rightKneeAngle: 170 }) // left recover → 1
     assert.equal(counter.getCount(), 1)
-
-    // Now right kicks up and down -> 2 reps total
-    counter.update({ leftKneeAngle: 170, rightKneeAngle: 50 })
-    counter.update({ leftKneeAngle: 170, rightKneeAngle: 165 })
+    counter.update({ leftKneeAngle: 170, rightKneeAngle: 45 })  // right kick down
+    counter.update({ leftKneeAngle: 170, rightKneeAngle: 165 }) // right recover → 2
     assert.equal(counter.getCount(), 2)
   })
 
   it('counts pogo jumps from vertical bounce, not knee angle', () => {
     const counter = new RepCounter('pogoJump')
-    // Knee stays nearly straight throughout (pogo) — only hipY oscillates.
-    // One full hop: ground (high y) -> apex (low y) -> ground (high y).
-    const hop = [0.60, 0.55, 0.50, 0.55, 0.60]
+    const hop = [0.60, 0.55, 0.50, 0.55, 0.60] // knees stay ~straight throughout
     for (const hipY of hop) counter.update({ hipY, kneeAngle: 168 })
     assert.equal(counter.getCount(), 1)
-
     for (const hipY of hop) counter.update({ hipY, kneeAngle: 168 })
     assert.equal(counter.getCount(), 2)
   })
 
   it('ignores vertical jitter below the amplitude threshold', () => {
     const counter = new RepCounter('pogoJump')
-    // Tiny noise (< minAmplitude 0.008) should not count as a hop
     const jitter = [0.600, 0.598, 0.600, 0.598, 0.600]
     for (const hipY of jitter) counter.update({ hipY, kneeAngle: 170 })
     assert.equal(counter.getCount(), 0)

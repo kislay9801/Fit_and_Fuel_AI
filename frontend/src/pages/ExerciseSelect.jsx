@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bell, Search, Play, Lock, Dumbbell, ShieldCheck, Activity } from 'lucide-react'
+import { Search, Play, Lock, Dumbbell, ShieldCheck, Activity } from 'lucide-react'
 
 const exercises = [
   {
@@ -121,12 +121,6 @@ export default function ExerciseSelect() {
       {/* ── Top bar ── */}
       <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md h-20 w-full flex justify-between items-center px-8 border-b border-slate-200 shadow-sm">
         <h2 className="font-bold text-2xl text-slate-900 tracking-tight">Exercise Library</h2>
-        <div className="flex items-center gap-6">
-          <button className="relative p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-all">
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-          </button>
-        </div>
       </header>
 
       {/* ── Main canvas ── */}
