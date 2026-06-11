@@ -358,6 +358,10 @@ export function getHighKneesAngles(landmarks) {
   // Hip-flexion angle: decreases as knee rises (180° = standing, ~80° = knee at hip level)
   const hipFlexionAngle = calculateAngle(midShoulder, raisedHip, raisedKnee)
 
+  // Per-leg hip flexion — needed to count each knee drive independently
+  const leftHipFlexion = calculateAngle(midShoulder, leftHip, leftKnee)
+  const rightHipFlexion = calculateAngle(midShoulder, rightHip, rightKnee)
+
   // Positive = knee above hip (good for high knees)
   const kneeHeightRatio = midHip.y - raisedKnee.y
 
@@ -367,6 +371,8 @@ export function getHighKneesAngles(landmarks) {
 
   return {
     hipFlexionAngle,
+    leftHipFlexion,
+    rightHipFlexion,
     kneeHeightRatio,
     spineAngle,
     kneeAngle: hipFlexionAngle, // alias for rep counter

@@ -9,6 +9,7 @@ const Dashboard    = lazy(() => import('./pages/Dashboard'))
 const ExerciseSelect = lazy(() => import('./pages/ExerciseSelect'))
 const Session      = lazy(() => import('./pages/Session'))
 const History      = lazy(() => import('./pages/History'))
+const Admin        = lazy(() => import('./pages/Admin'))
 
 const Nutrition    = lazy(() => import('./pages/services/Nutrition'))
 const Injuries     = lazy(() => import('./pages/services/Injuries'))
@@ -92,6 +93,11 @@ export default function App() {
           <Route path="/history" element={
             <ProtectedRoute user={user}>
               <Layout user={user}><History user={user} /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <ProtectedRoute user={user}>
+              <Layout user={user}><Admin user={user} /></Layout>
             </ProtectedRoute>
           } />
           

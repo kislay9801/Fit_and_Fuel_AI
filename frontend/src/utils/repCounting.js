@@ -1,35 +1,77 @@
 /**
  * Rep counting + per-rep peak capture.
  *
- * Two detection modes:
- *  - 'angle'    : counts a rep on a down→up cycle of a tracking joint angle
- *                 (squat, push-up, lunge, high knees, etc.). The "effort" of
- *                 every supported exercise happens at the SMALLEST joint angle,
- *                 so we also remember the angles snapshot at the deepest point
- *                 of each rep — that peak frame is what gets scored.
- *  - 'vertical' : counts a rep on each vertical bounce of the body (pogo jumps),
- *                 where the knee barely flexes and angle thresholds can't work.
- *                 Detects the apex of each hop from the hip's vertical motion.
- *  - 'none'     : isometric holds (plank) — no reps.
+ * Detection modes:
+ *  - 'angle'       : one down→up cycle of a single tracking joint angle
+ *                    (squat, push-up, lunge, sumo squat, jump landing). The
+ *                    "effort" is at the SMALLEST angle, so the deepest frame of
+ *                    each rep is remembered and used for scoring.
+ *  - 'alternating' : left/right limbs cycle independently (high knees, butt
+ *                    kicks). Each limb runs its own down→up state machine and
+ *                    every drive/kick counts. Using a single min()/max() signal
+ *                    here fails, because one limb is always flexed so the shared
+ *                    angle never returns to the "up" position.
+ *  - 'vertical'    : each vertical bounce of the body (pogo jumps), where the
+ *                    knee barely flexes and angle thresholds can't work.
+ *  - 'none'        : isometric holds (plank) — no reps.
  *
- * The state machine uses hysteresis (separate down/up thresholds) so a single
- * noisy frame near a threshold can't double-count.
+ * Thresholds use hysteresis (separate down/up values) and are deliberately
+ * loose, because 2D camera projection makes a "straight" joint read well below
+ * 180° and a "bent" joint read above its true value.
  */
 
 function getConfig(exercise) {
   switch (exercise) {
-    // angle key + hysteresis thresholds (degrees). down = enter bottom, up = rep complete
-    case 'squat':       return { mode: 'angle', key: 'kneeAngle',       down: 130, up: 150 }
-    case 'lunge':       return { mode: 'angle', key: 'kneeAngle',       down: 130, up: 150 }
-    case 'pushup':      return { mode: 'angle', key: 'elbowAngle',      down: 110, up: 150 }
-    case 'deadlift':    return { mode: 'angle', key: 'kneeAngle',       down: 150, up: 168 }
-    case 'jumpLanding': return { mode: 'angle', key: 'kneeAngle',       down: 140, up: 160 }
-    case 'highKnees':   return { mode: 'angle', key: 'hipFlexionAngle', down: 120, up: 150 }
-    case 'sumoSquat':   return { mode: 'angle', key: 'kneeAngle',       down: 120, up: 150 }
-    case 'buttKicks':   return { mode: 'angle', key: 'bentKneeAngle',   down: 110, up: 145 }
-    case 'pogoJump':    return { mode: 'vertical', key: 'hipY', minAmplitude: 0.012, peakKey: 'kneeAngle' }
+    case 'squat':       return { mode: 'angle', key: 'kneeAngle',  down: 140, up: 158 }
+    case 'lunge':       return { mode: 'angle', key: 'kneeAngle',  down: 140, up: 158 }
+    case 'sumoSquat':   return { mode: 'angle', key: 'kneeAngle',  down: 135, up: 158 }
+    case 'pushup':      return { mode: 'angle', key: 'elbowAngle', down: 110, up: 150 }
+    case 'deadlift':    return { mode: 'angle', key: 'kneeAngle',  down: 150, up: 166 }
+    case 'jumpLanding': return { mode: 'angle', key: 'kneeAngle',  down: 150, up: 166 }
+    case 'highKnees':   return { mode: 'alternating', leftKey: 'leftHipFlexion', rightKey: 'rightHipFlexion', down: 130, up: 155 }
+    case 'buttKicks':   return { mode: 'alternating', leftKey: 'leftKneeAngle',  rightKey: 'rightKneeAngle',  down: 110, up: 150 }
+    case 'pogoJump':    return { mode: 'vertical', key: 'hipY', minAmplitude: 0.008, peakKey: 'kneeAngle' }
     case 'plank':       return { mode: 'none' }
-    default:            return { mode: 'angle', key: 'kneeAngle', down: 120, up: 150 }
+    default:            return { mode: 'angle', key: 'kneeAngle', down: 140, up: 158 }
+  }
+}
+
+/** One down→up state machine that also remembers the deepest frame of the rep. */
+class Limb {
+  constructor(down, up) {
+    this.down = down
+    this.up = up
+    this.phase = 'up'
+    this.peakAngle = null
+    this.peakSnapshot = null
+  }
+
+  /** Returns the peak-angles snapshot if a rep just completed, else null. */
+  update(tracking, snapshot) {
+    if (tracking === null || tracking === undefined) return null
+
+    if (this.phase === 'up') {
+      if (tracking < this.down) {
+        this.phase = 'down'
+        this.peakAngle = tracking
+        this.peakSnapshot = snapshot
+      }
+      return null
+    }
+
+    // phase === 'down': track the deepest frame
+    if (this.peakAngle === null || tracking < this.peakAngle) {
+      this.peakAngle = tracking
+      this.peakSnapshot = snapshot
+    }
+    if (tracking > this.up) {
+      this.phase = 'up'
+      const peak = this.peakSnapshot
+      this.peakAngle = null
+      this.peakSnapshot = null
+      return peak // rep complete
+    }
+    return null
   }
 }
 
@@ -42,81 +84,74 @@ export class RepCounter {
 
   reset() {
     this.repCount = 0
-    this.phase = 'up' // 'up' (extended/standing) | 'down' (bottom/effort)
-    // peak capture for the rep currently in progress
-    this._peakTracking = null   // most-extreme (smallest) tracking angle seen this rep
-    this._peakAngles = null     // full angles snapshot at that peak
-    this._completedPeak = null  // peak angles of the rep that JUST completed (consumed once)
-    // vertical-mode state
-    this._prevY = null
-    this._prevVel = 0
-    this._minY = Infinity
-    this._maxY = -Infinity
+    this._completedPeak = null
+    const { mode, down, up } = this.config
+    if (mode === 'angle') {
+      this._limb = new Limb(down, up)
+    } else if (mode === 'alternating') {
+      this._left = new Limb(down, up)
+      this._right = new Limb(down, up)
+    } else if (mode === 'vertical') {
+      this._prevY = null
+      this._prevVel = 0
+      this._minY = Infinity
+      this._maxY = -Infinity
+      this._peakAngle = null
+      this._peakSnapshot = null
+    }
   }
 
   update(angles) {
     if (!angles) return this.repCount
-    if (this.config.mode === 'none') return this.repCount
-    if (this.config.mode === 'vertical') return this._updateVertical(angles)
-    return this._updateAngle(angles)
+    switch (this.config.mode) {
+      case 'angle':       return this._updateAngle(angles)
+      case 'alternating': return this._updateAlternating(angles)
+      case 'vertical':    return this._updateVertical(angles)
+      default:            return this.repCount // 'none'
+    }
   }
 
   _updateAngle(angles) {
-    const { key, down, up } = this.config
-    const tracking = angles[key]
-    if (tracking === null || tracking === undefined) return this.repCount
-
-    if (this.phase === 'up') {
-      if (tracking < down) {
-        // entered the bottom of a rep — start tracking the peak
-        this.phase = 'down'
-        this._peakTracking = tracking
-        this._peakAngles = angles
-      }
-    } else {
-      // in the bottom — remember the deepest (smallest-angle) frame
-      if (this._peakTracking === null || tracking < this._peakTracking) {
-        this._peakTracking = tracking
-        this._peakAngles = angles
-      }
-      if (tracking > up) {
-        // came back up — rep complete
-        this.phase = 'up'
-        this.repCount += 1
-        this._completedPeak = this._peakAngles
-        this._peakTracking = null
-        this._peakAngles = null
-      }
+    const peak = this._limb.update(angles[this.config.key], angles)
+    if (peak) {
+      this.repCount += 1
+      this._completedPeak = peak
     }
     return this.repCount
   }
 
-  _updateVertical(angles) {
-    const y = angles[this.config.key]            // hip vertical position (lower y = higher in the air)
-    const peakKey = this.config.peakKey
-    const peakVal = angles[peakKey]
+  _updateAlternating(angles) {
+    const lPeak = this._left.update(angles[this.config.leftKey], angles)
+    if (lPeak) { this.repCount += 1; this._completedPeak = lPeak }
+    const rPeak = this._right.update(angles[this.config.rightKey], angles)
+    if (rPeak) { this.repCount += 1; this._completedPeak = rPeak }
+    return this.repCount
+  }
 
-    // continuously remember the deepest knee bend (smallest angle) within this hop
-    if (peakVal !== undefined && (this._peakTracking === null || peakVal < this._peakTracking)) {
-      this._peakTracking = peakVal
-      this._peakAngles = angles
+  _updateVertical(angles) {
+    const y = angles[this.config.key]
+    const peakVal = angles[this.config.peakKey]
+
+    // remember the deepest knee bend within the current hop (for scoring)
+    if (peakVal !== undefined && (this._peakAngle === null || peakVal < this._peakAngle)) {
+      this._peakAngle = peakVal
+      this._peakSnapshot = angles
     }
 
     if (y === null || y === undefined) return this.repCount
     if (this._prevY === null) { this._prevY = y; return this.repCount }
 
-    const vel = y - this._prevY                  // >0 falling, <0 rising
+    const vel = y - this._prevY // >0 falling, <0 rising
     this._minY = Math.min(this._minY, y)
     this._maxY = Math.max(this._maxY, y)
 
     // apex of a hop = vertical velocity flips from rising to falling
     if (this._prevVel < 0 && vel >= 0) {
-      const amplitude = this._maxY - this._minY
-      if (amplitude > this.config.minAmplitude) {
+      if (this._maxY - this._minY > this.config.minAmplitude) {
         this.repCount += 1
-        this._completedPeak = this._peakAngles || angles
-        this._peakTracking = null
-        this._peakAngles = null
+        this._completedPeak = this._peakSnapshot || angles
+        this._peakAngle = null
+        this._peakSnapshot = null
         this._minY = Infinity
         this._maxY = -Infinity
       }
@@ -139,6 +174,11 @@ export class RepCounter {
   }
 
   getPhase() {
-    return this.phase
+    const { mode } = this.config
+    if (mode === 'angle') return this._limb.phase
+    if (mode === 'alternating') {
+      return (this._left.phase === 'down' || this._right.phase === 'down') ? 'down' : 'up'
+    }
+    return 'up'
   }
 }

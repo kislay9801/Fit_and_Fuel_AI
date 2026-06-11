@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { signOutUser } from '../firebase/auth'
-import { LayoutDashboard, Dumbbell, History, LogOut, Zap, HeartPulse, ChevronDown } from 'lucide-react'
+import { isAdmin } from '../utils/admin'
+import { LayoutDashboard, Dumbbell, History, LogOut, Zap, HeartPulse, ChevronDown, Shield } from 'lucide-react'
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -94,6 +95,21 @@ export default function Sidebar({ user }) {
             </div>
           )}
         </div>
+
+        {/* Admin (owner only) */}
+        {isAdmin(user) && (
+          <Link
+            to="/admin"
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-bold transition-all group ${
+              location.pathname === '/admin'
+                ? 'bg-slate-900 text-white'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+            }`}
+          >
+            <Shield className={`w-5 h-5 ${location.pathname === '/admin' ? 'text-white' : 'text-slate-400 group-hover:text-slate-600'}`} />
+            Admin
+          </Link>
+        )}
       </nav>
 
       {/* Footer */}

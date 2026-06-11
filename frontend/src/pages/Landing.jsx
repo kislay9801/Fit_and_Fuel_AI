@@ -1,9 +1,15 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Dumbbell, Activity, Target, TrendingUp, ShieldCheck, Play, ArrowRight, Bell } from 'lucide-react'
+import { Dumbbell, Activity, Target, TrendingUp, ShieldCheck, Play, ArrowRight } from 'lucide-react'
 
 export default function Landing() {
   const navigate = useNavigate()
+
+  // Smooth-scroll to an on-page section by id
+  const scrollTo = (id) => (e) => {
+    e.preventDefault()
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   useEffect(() => {
     // Simple intersection observer for fade-in animations
@@ -35,15 +41,12 @@ export default function Landing() {
           </div>
           
           <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-slate-600">
-            <a href="#" className="hover:text-blue-600 transition-colors">How it Works</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">Features</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">Testimonials</a>
+            <a href="#how-it-works" onClick={scrollTo('how-it-works')} className="hover:text-blue-600 transition-colors">How it Works</a>
+            <a href="#features" onClick={scrollTo('features')} className="hover:text-blue-600 transition-colors">Features</a>
+            <a href="#get-started" onClick={scrollTo('get-started')} className="hover:text-blue-600 transition-colors">Get Started</a>
           </nav>
-          
+
           <div className="flex items-center gap-4">
-            <button className="text-slate-500 hover:text-slate-900 hover:bg-slate-100 p-2 rounded-full transition-colors hidden sm:block">
-              <Bell className="w-5 h-5" />
-            </button>
             <button
               onClick={() => navigate('/auth')}
               className="bg-blue-600 text-white px-5 py-2 rounded-lg font-semibold text-sm hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm"
@@ -55,7 +58,7 @@ export default function Landing() {
       </header>
 
       {/* ── HERO ── */}
-      <section className="relative pt-24 pb-32 px-6 overflow-hidden">
+      <section id="features" className="relative pt-24 pb-32 px-6 overflow-hidden">
         <div className="container mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           <div className="lg:col-span-6 flex flex-col gap-6 animate-on-scroll">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full w-fit">
@@ -79,9 +82,12 @@ export default function Landing() {
                 Start Your First Session
                 <ArrowRight className="w-5 h-5" />
               </button>
-              <button className="bg-white border border-slate-300 text-slate-700 px-8 py-4 rounded-xl font-bold text-lg flex items-center gap-2 hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98] transition-all shadow-sm">
+              <button
+                onClick={scrollTo('how-it-works')}
+                className="bg-white border border-slate-300 text-slate-700 px-8 py-4 rounded-xl font-bold text-lg flex items-center gap-2 hover:bg-slate-50 hover:border-slate-400 active:scale-[0.98] transition-all shadow-sm"
+              >
                 <Play className="w-5 h-5 fill-slate-700" />
-                View Demo
+                See How It Works
               </button>
             </div>
             
@@ -104,7 +110,7 @@ export default function Landing() {
             <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-900 aspect-[4/3] shadow-2xl ring-1 ring-slate-900/5">
               <img
                 className="w-full h-full object-cover opacity-90"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5JATYCECiWvGjXXPdVZe7KKXsEoN8eqFsZEoRNvFYU-48hr73F9hOkIANOujC0rxyfMqR8Za39JJFaXn898SP1xtewiVAH4WOOd_dwJ6PKTsd-z2SbHTuSmnSdIXaULVOxVSTLs_lZjhoGMnpHXyU21V7mhZeYsAVTOvhCZjWJ0NUDBHekX_wtILa4F2b36LaHFejni5dUYQF8LDdwuhHJuTqMhN60buj4Kh7CbFENhzT39tNeH6U3CEdwZuoE_zFNYaIwDQr07s"
+                src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&h=600&fit=crop&auto=format"
                 alt="Athlete with pose tracking overlay"
               />
               {/* HUD overlays */}
@@ -144,7 +150,7 @@ export default function Landing() {
       </section>
 
       {/* ── HOW IT WORKS ── */}
-      <section className="py-24 px-6 bg-white border-y border-slate-200">
+      <section id="how-it-works" className="py-24 px-6 bg-white border-y border-slate-200">
         <div className="container mx-auto animate-on-scroll">
           <div className="flex flex-col items-center text-center mb-16">
             <h2 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-4">Precision Workflow</h2>
@@ -156,17 +162,17 @@ export default function Landing() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { step: '01', icon: Target,      title: 'Select Exercise',  desc: 'Choose from squat, push-up, or deadlift analysis modes.' },
+              { step: '01', icon: Target,      title: 'Select Exercise',  desc: 'Choose from 10 strength, mobility, and cardio analysis modes.' },
               { step: '02', icon: Activity,    title: 'Setup Frame',      desc: 'Our guide ensures your full body is in the optimal analysis zone.' },
               { step: '03', icon: Dumbbell,    title: 'Real-time Data',   desc: 'AI calculates joint angles, alignment, and rep quality in real-time.' },
               { step: '04', icon: TrendingUp,  title: 'Refine Form',      desc: 'Receive coaching cues and review deep-dive session analytics.' },
             ].map(({ step, icon: Icon, title, desc }) => (
-              <div key={step} className="group relative p-8 rounded-2xl bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-white hover:shadow-xl transition-all duration-300">
-                <div className="absolute -top-4 -right-4 text-6xl font-black text-slate-100 group-hover:text-blue-50 transition-colors pointer-events-none">
-                  {step}
-                </div>
-                <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 mb-6 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
-                  <Icon className="w-7 h-7" />
+              <div key={step} className="group relative overflow-hidden p-8 rounded-2xl bg-slate-50 border border-slate-200 hover:border-blue-300 hover:bg-white hover:shadow-xl transition-all duration-300">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-14 h-14 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                    <Icon className="w-7 h-7" />
+                  </div>
+                  <span className="text-sm font-black tracking-[0.2em] text-slate-300 group-hover:text-blue-300 transition-colors">{step}</span>
                 </div>
                 <h3 className="font-bold text-xl text-slate-900 mb-3">{title}</h3>
                 <p className="text-slate-600 text-sm leading-relaxed">{desc}</p>
@@ -177,7 +183,7 @@ export default function Landing() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="py-24 px-6 animate-on-scroll">
+      <section id="get-started" className="py-24 px-6 animate-on-scroll">
         <div className="container mx-auto">
           <div className="rounded-3xl bg-slate-900 p-12 md:p-20 flex flex-col items-center text-center relative overflow-hidden shadow-2xl">
             {/* Decor */}
@@ -212,9 +218,9 @@ export default function Landing() {
             <span className="font-bold text-slate-900">Fit &amp; Fuel AI</span>
           </div>
           <div className="flex gap-8 text-sm font-medium text-slate-500">
-            <a href="#" className="hover:text-blue-600 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-blue-600 transition-colors">Contact Support</a>
+            <a href="#how-it-works" onClick={scrollTo('how-it-works')} className="hover:text-blue-600 transition-colors">How it Works</a>
+            <a href="#features" onClick={scrollTo('features')} className="hover:text-blue-600 transition-colors">Features</a>
+            <a href="mailto:kaustubh.kislay@athenaeducation.co.in" className="hover:text-blue-600 transition-colors">Contact Support</a>
           </div>
           <div className="text-sm text-slate-400">
             &copy; {new Date().getFullYear()} Fit &amp; Fuel. All rights reserved.

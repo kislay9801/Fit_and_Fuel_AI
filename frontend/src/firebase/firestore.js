@@ -60,6 +60,34 @@ export async function createUserProfile(uid, { email, displayName = '' }) {
 }
 
 /**
+ * Fetch all user profile documents (admin view).
+ * Returns { users: [...], error }. Sorted by most recently active first.
+ */
+export async function getAllUsers() {
+  try {
+    const snap = await getDocs(collection(db, 'users'))
+    const users = snap.docs.map(d => {
+      const data = d.data()
+      return {
+        id: d.id,
+        ...data,
+        createdAt: data.createdAt?.toDate?.() ?? null,
+        lastSessionAt: data.lastSessionAt?.toDate?.() ?? null,
+      }
+    })
+    users.sort((a, b) => {
+      const at = a.lastSessionAt?.getTime?.() ?? a.createdAt?.getTime?.() ?? 0
+      const bt = b.lastSessionAt?.getTime?.() ?? b.createdAt?.getTime?.() ?? 0
+      return bt - at
+    })
+    return { users, error: null }
+  } catch (err) {
+    console.error('getAllUsers error:', err)
+    return { users: [], error: err.message }
+  }
+}
+
+/**
  * Fetch a user's profile document.
  * Returns { data, error }.
  */

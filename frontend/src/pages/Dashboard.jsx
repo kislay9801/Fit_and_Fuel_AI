@@ -279,7 +279,7 @@ export default function Dashboard({ user }) {
             <div className="absolute inset-0 z-0">
               <img
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5Flb-WQqDPCTfMYpLFXQuU625nEMLEdhB9UhGc2DeM3KA9ZRgYnl-ZCVNTxm9s4XcpnwTcuRiWJvSm5lWWL1U4CIZ7BJMK211noKCE3DxM7JKy3B4AHvg3SGEmFlUvFYBCTpRQABb5kIKOLPzFBlZobvQ7XVQJzNR8AgPJRcZQ4VjBShJUOlohYs57zL7btLr3VIDz7xqrnZKRkmkpcVAjmw6FxeL_iCDiTk4tGgep8cGwrKhI9uGioJWRjuHK5w8xxupZyUO8"
+                src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&h=700&fit=crop&auto=format"
                 alt="Athlete coaching"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent" />
@@ -289,7 +289,7 @@ export default function Dashboard({ user }) {
               <h4 className="font-bold text-2xl mb-2 tracking-tight">
                 {hasSessions ? 'Improve Hip Mobility' : 'Start Your First Session'}
               </h4>
-              <p className="text-sm text-slate-200 mb-6 leading-relaxed">
+              <p className="text-sm text-slate-200 mb-6 leading-relaxed line-clamp-3">
                 {hasSessions
                   ? 'Based on your recent sessions, adding 10 min of hip openers will reduce your Pelvic Tilt score by ~12%.'
                   : 'Start training with real-time pose tracking to receive tailored exercise form analysis and AI coaching.'}
