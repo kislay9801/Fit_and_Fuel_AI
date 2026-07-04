@@ -95,7 +95,6 @@ export default function Sidebar({ user, mobileOpen = false, onClose = () => {} }
                   { to: '/services/nutrition', label: 'Nutrition' },
                   { to: '/services/injuries', label: 'Injuries & Recovery' },
                   { to: '/services/exercises', label: 'Exercise Library' },
-                  { to: '/services/warmups', label: 'Warm-Up Exercises' },
                   { to: '/services/athletes', label: 'Athletes & Quotes' }
                 ].map(sub => {
                   const subActive = location.pathname === sub.to
