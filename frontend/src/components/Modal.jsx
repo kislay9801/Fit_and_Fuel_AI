@@ -1,16 +1,18 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 /**
  * Centered modal (bottom-sheet on mobile) with an X close button.
- * - Locks background scroll while open, so the page behind never moves.
- * - `overscroll-contain` stops touch scroll from "leaking" to the page.
- * - Closes on backdrop click, the X, or the Escape key.
+ * - Rendered via a portal to <body> so a transformed ancestor (e.g. a page's
+ *   entry animation) can't trap `position: fixed` and mis-place the overlay.
+ * - Locks background scroll while open; `overscroll-contain` stops touch scroll
+ *   from leaking to the page. Closes on backdrop click, the X, or Escape.
  */
 export default function Modal({ title, subtitle, accent = 'text-blue-600', onClose, children }) {
   useEffect(() => {
     const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden' // lock background scroll
+    document.body.style.overflow = 'hidden'
     const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
     window.addEventListener('keydown', onKey)
     return () => {
@@ -19,7 +21,7 @@ export default function Modal({ title, subtitle, accent = 'text-blue-600', onClo
     }
   }, [onClose])
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center sm:p-4 bg-slate-900/50 animate-in fade-in duration-200"
       onClick={onClose}
@@ -49,6 +51,7 @@ export default function Modal({ title, subtitle, accent = 'text-blue-600', onClo
 
         <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
