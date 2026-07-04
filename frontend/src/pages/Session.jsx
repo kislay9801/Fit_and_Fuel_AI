@@ -11,6 +11,7 @@ import CoachingSummary from '../components/CoachingSummary'
 import RepCounter from '../components/RepCounter'
 import { scoreExercise, isRepBased } from '../utils/formScoring'
 import { detectRisks } from '../utils/riskDetection'
+import { getRecordingAngle } from '../utils/recordingAngle'
 import { Camera as CameraIcon, Upload, Square, ChevronLeft, AlertCircle, Dumbbell, Activity, ShieldCheck, Flame, Loader2 } from 'lucide-react'
 
 const exerciseNames = {
@@ -403,8 +404,21 @@ export default function Session({ user }) {
         {!mode && !sessionEnded && (
           <div className="flex flex-col items-center justify-center py-20 fade-in">
             <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-3">Record Your Session</h2>
-            <p className="text-slate-500 font-medium mb-12">Choose how you would like to analyze your form.</p>
-            
+            <p className="text-slate-500 font-medium mb-8">Choose how you would like to analyze your form.</p>
+
+            {/* Recommended camera angle for this exercise */}
+            <div className="mb-10 w-full max-w-2xl bg-blue-600 text-white rounded-2xl p-5 flex items-center gap-4 shadow-md">
+              <div className="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                <CameraIcon className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="text-xs font-bold uppercase tracking-widest text-blue-100 mb-0.5">
+                  Recommended angle · {getRecordingAngle(exercise).angle}
+                </div>
+                <p className="text-sm font-medium leading-snug">{getRecordingAngle(exercise).tip}</p>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
               {[
                 { id: 'camera', icon: CameraIcon, title: 'Live Camera', desc: 'Real-time analysis via webcam', color: 'blue' },

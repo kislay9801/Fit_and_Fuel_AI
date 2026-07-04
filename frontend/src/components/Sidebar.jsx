@@ -92,8 +92,9 @@ export default function Sidebar({ user, mobileOpen = false, onClose = () => {} }
             {servicesOpen && (
               <div className="flex flex-col gap-1 mt-1 pl-11 pr-2">
                 {[
-                  { to: '/services/nutrition', label: 'Nutritional Info' },
-                  { to: '/services/injuries', label: 'Injury Recovery' },
+                  { to: '/services/nutrition', label: 'Nutrition' },
+                  { to: '/services/injuries', label: 'Injuries & Recovery' },
+                  { to: '/services/exercises', label: 'Exercise Library' },
                   { to: '/services/warmups', label: 'Warm-Up Exercises' },
                   { to: '/services/athletes', label: 'Athletes & Quotes' }
                 ].map(sub => {

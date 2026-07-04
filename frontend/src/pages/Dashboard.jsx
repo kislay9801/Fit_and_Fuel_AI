@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getDashboardStats, getRecentSessions } from '../firebase/firestore'
 import { getIssueInfo } from '../utils/issueInfo'
-import { Plus, TrendingUp, Award, ShieldCheck, ArrowRight, Activity, CalendarDays } from 'lucide-react'
+import { Plus, TrendingUp, Award, ShieldCheck, ArrowRight, Activity, CalendarDays, Flame } from 'lucide-react'
 
 const exerciseEmoji = { squat: '🏋️', pushup: '💪', deadlift: '🔥' }
 
@@ -146,6 +146,19 @@ function barColor(avg) {
   return 'bg-red-500'
 }
 
+/** Consecutive-day training streak, counting today (or yesterday if today's not done yet). */
+function computeStreak(sessions) {
+  if (!sessions || !sessions.length) return 0
+  const DAY = 86_400_000
+  const dayStart = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x.getTime() }
+  const days = new Set(sessions.map(s => dayStart(dateOf(s))))
+  let cursor = dayStart(new Date())
+  if (!days.has(cursor)) cursor -= DAY // don't break the streak just because today isn't logged yet
+  let streak = 0
+  while (days.has(cursor)) { streak++; cursor -= DAY }
+  return streak
+}
+
 function scoreBand(score) {
   if (score >= 90) return { label: 'Optimal',         cls: 'bg-emerald-100 text-emerald-800 border-emerald-200' }
   if (score >= 75) return { label: 'Stable',          cls: 'bg-blue-100 text-blue-800 border-blue-200' }
@@ -181,6 +194,7 @@ export default function Dashboard({ user }) {
 
   // Recommendation reflects recent form (last ~20 sessions), not all-time
   const recommendation = buildRecommendation(sessions.slice(0, 20), stats?.avgFormScore ?? 0)
+  const streak = computeStreak(sessions)
 
   useEffect(() => {
     if (!user?.uid) return
@@ -208,13 +222,23 @@ export default function Dashboard({ user }) {
         <h2 className="font-bold text-lg sm:text-2xl text-slate-900 tracking-tight truncate">
           Performance Dashboard
         </h2>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 sm:gap-4">
+          {streak > 0 && (
+            <div
+              className="flex items-center gap-1.5 px-3 py-2 bg-orange-50 border border-orange-200 rounded-lg text-orange-600 font-bold text-sm"
+              title={`You've trained ${streak} day${streak > 1 ? 's' : ''} in a row — keep it going!`}
+            >
+              <Flame className="w-4 h-4 fill-orange-400 text-orange-500" />
+              {streak}<span className="hidden sm:inline">-day streak</span>
+            </div>
+          )}
           <button
             onClick={() => navigate('/exercises')}
             className="bg-blue-600 text-white text-sm font-bold px-4 py-2.5 rounded-lg hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center gap-1 shadow-sm"
           >
             <Plus className="w-4 h-4" />
-            New Session
+            <span className="hidden sm:inline">New Session</span>
+            <span className="sm:hidden">New</span>
           </button>
         </div>
       </header>

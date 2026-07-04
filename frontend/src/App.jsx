@@ -13,6 +13,7 @@ const Admin        = lazy(() => import('./pages/Admin'))
 
 const Nutrition    = lazy(() => import('./pages/services/Nutrition'))
 const Injuries     = lazy(() => import('./pages/services/Injuries'))
+const ExercisesCatalog = lazy(() => import('./pages/services/ExercisesCatalog'))
 const Warmups      = lazy(() => import('./pages/services/Warmups'))
 const Athletes     = lazy(() => import('./pages/services/Athletes'))
 
@@ -109,6 +110,11 @@ export default function App() {
           <Route path="/services/injuries" element={
             <ProtectedRoute user={user}>
               <Layout user={user}><Injuries /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/services/exercises" element={
+            <ProtectedRoute user={user}>
+              <Layout user={user}><ExercisesCatalog /></Layout>
             </ProtectedRoute>
           } />
           <Route path="/services/warmups" element={

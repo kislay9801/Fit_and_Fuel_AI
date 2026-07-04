@@ -1,159 +1,114 @@
-import React, { useState } from 'react';
-import { Apple, Leaf, Droplet, Flame, ZoomIn } from 'lucide-react';
-import ImageModal from '../../components/ImageModal';
+import { useState } from 'react'
+import { Apple, Leaf, ChevronRight, Stethoscope } from 'lucide-react'
+import Modal from '../../components/Modal'
+import { NUTRITION_CATEGORIES, INJURY_NUTRIENTS, NUTRIENT_INFO } from '../../data/nutrition'
+
+function NutrientList({ nutrients }) {
+  return (
+    <div className="flex flex-col gap-4">
+      {nutrients.map(n => (
+        <div key={n.name} className="border-b border-slate-100 last:border-0 pb-4 last:pb-0">
+          <h4 className="font-bold text-slate-900 mb-1">{n.name}</h4>
+          <p className="text-sm text-slate-600 leading-relaxed mb-2">{n.desc}</p>
+          <div className="flex items-start gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-lg px-2.5 py-1.5 w-fit">
+            <Leaf className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+            <span>{n.sources}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 export default function Nutrition() {
-  const [modalImage, setModalImage] = useState(null);
-
-  const nutrients = [
-    {
-      type: "Macronutrient",
-      name: "Proteins",
-      description: "Proteins are the building blocks of the body, crucial for repairing tissue, building muscle, and producing enzymes and hormones. They are made of amino acids.",
-      sources: "Chicken breast, eggs, Greek yogurt, lentils, tofu.",
-      icon: Flame,
-      color: "blue",
-      img: "https://images.unsplash.com/photo-1532550907401-a500c9a57435?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      type: "Macronutrient",
-      name: "Carbohydrates",
-      description: "Carbohydrates are the body's primary energy source. They are broken down into glucose, which fuels your muscles and brain during workouts.",
-      sources: "Oats, brown rice, sweet potatoes, bananas, quinoa.",
-      icon: Flame,
-      color: "blue",
-      img: "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      type: "Macronutrient",
-      name: "Fats",
-      description: "Dietary fats are essential for hormone production, protecting your organs, and nutrient absorption. They also provide sustained energy for long-duration activities.",
-      sources: "Avocados, nuts, olive oil, salmon, chia seeds.",
-      icon: Flame,
-      color: "blue",
-      img: "https://avicennacardiology.com/wp-content/uploads/2025/05/Healthy-Fats-and-Why-Do-They-Matter-for-Your-Health.jpg"
-    },
-    {
-      type: "Micronutrient",
-      name: "Vitamins",
-      description: "Vitamins are organic compounds required in small quantities for various metabolic processes, immune function, and energy production (like B-complex vitamins).",
-      sources: "Citrus fruits (Vitamin C), spinach (Vitamin K), sunlight/fortified milk (Vitamin D).",
-      icon: Droplet,
-      color: "purple",
-      img: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      type: "Micronutrient",
-      name: "Minerals",
-      description: "Minerals are inorganic elements needed for bone health, muscle contraction (calcium, magnesium), and oxygen transport (iron).",
-      sources: "Dairy (Calcium), red meat/spinach (Iron), bananas (Potassium).",
-      icon: Droplet,
-      color: "purple",
-      img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80"
-    },
-    {
-      type: "Micronutrient",
-      name: "Water",
-      description: "Water makes up about 60% of body weight. It regulates body temperature, lubricates joints, and transports nutrients. Dehydration severely impacts performance.",
-      sources: "Drinking water, watery fruits like watermelon and cucumbers.",
-      icon: Droplet,
-      color: "purple",
-      img: "https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=800&q=80"
-    }
-  ];
+  const [openCat, setOpenCat] = useState(null)      // category object
+  const [openInjury, setOpenInjury] = useState(null) // injury object
 
   return (
-    <>
-      <div className="max-w-5xl mx-auto space-y-12 px-4 sm:px-6 pt-6 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-        {/* Header Section */}
-        <div 
-          className="relative rounded-3xl overflow-hidden h-80 flex items-center justify-center cursor-pointer group"
-          onClick={() => setModalImage("https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=80")}
-        >
-          <img 
-            src="https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=1200&q=80" 
-            alt="Healthy Food" 
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/90 to-slate-900/40"></div>
-          
-          <div className="absolute top-4 right-4 bg-black/50 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white">
-            <ZoomIn className="w-5 h-5" />
-          </div>
-
-          <div className="relative z-10 text-center text-white px-6">
-            <div className="inline-flex items-center justify-center p-3 bg-green-500 rounded-full mb-4 shadow-lg shadow-green-500/30">
-              <Apple className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">Nutritional Information</h1>
-            <p className="text-lg md:text-xl text-green-50 max-w-2xl mx-auto font-medium">
-              Fuel your body with the right nutrients to maximize performance, accelerate recovery, and achieve your fitness goals.
-            </p>
-          </div>
+    <div className="max-w-5xl mx-auto space-y-10 px-4 sm:px-6 pt-6 pb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Hero */}
+      <div className="rounded-3xl bg-gradient-to-br from-green-600 to-emerald-500 text-white p-8 sm:p-10 shadow-md">
+        <div className="inline-flex items-center justify-center p-3 bg-white/20 rounded-2xl mb-4">
+          <Apple className="w-7 h-7" />
         </div>
-
-        {/* What is Nutrition? */}
-        <section className="bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-slate-100">
-          <h2 className="text-2xl font-bold text-slate-900 mb-4 flex items-center gap-3">
-            <Leaf className="w-6 h-6 text-green-500" />
-            What is Nutrition?
-          </h2>
-          <p className="text-slate-600 leading-relaxed text-lg">
-            Nutrition is the biochemical and physiological process by which an organism uses food to support its life. It includes ingestion, absorption, assimilation, biosynthesis, catabolism, and excretion. For athletes and fitness enthusiasts, proper nutrition is the foundation of peak performance and optimal recovery.
-          </p>
-        </section>
-
-        {/* Detailed Nutrients Grid */}
-        <div className="space-y-6">
-          <h2 className="text-3xl font-extrabold text-slate-900 px-2">Essential Nutrients Breakdown</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {nutrients.map((nutrient, idx) => (
-              <div key={idx} className="bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm flex flex-col group">
-                <div 
-                  className="h-48 overflow-hidden relative cursor-pointer"
-                  onClick={() => setModalImage(nutrient.img)}
-                >
-                  <img 
-                    src={nutrient.img} 
-                    alt={nutrient.name} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors"></div>
-                  <div className="absolute top-3 right-3 bg-black/50 p-1.5 rounded-full opacity-0 group-hover:opacity-100 transition-opacity text-white">
-                    <ZoomIn className="w-4 h-4" />
-                  </div>
-                </div>
-                
-                <div className="p-8 flex-1 relative">
-                  <div className={`absolute -top-6 right-8 w-12 h-12 bg-${nutrient.color}-500 rounded-2xl flex items-center justify-center shadow-lg shadow-${nutrient.color}-500/30`}>
-                    <nutrient.icon className="w-6 h-6 text-white" />
-                  </div>
-                  
-                  <span className={`text-xs font-bold uppercase tracking-wider text-${nutrient.color}-600 mb-1 block`}>
-                    {nutrient.type}
-                  </span>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-3">{nutrient.name}</h3>
-                  <p className="text-slate-600 leading-relaxed mb-4">
-                    {nutrient.description}
-                  </p>
-                  
-                  <div className="mt-auto pt-4 border-t border-slate-100">
-                    <h4 className="font-bold text-sm text-slate-800 mb-1">Common Sources:</h4>
-                    <p className="text-slate-600 text-sm">{nutrient.sources}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight mb-3">Nutrition</h1>
+        <p className="text-green-50 max-w-2xl leading-relaxed">
+          Fuel your body with the right nutrients to maximize performance, accelerate recovery, and stay healthy.
+          Tap a function to see the nutrients behind it and where to get them.
+        </p>
       </div>
 
-      <ImageModal 
-        isOpen={!!modalImage} 
-        onClose={() => setModalImage(null)} 
-        imageSrc={modalImage} 
-      />
-    </>
-  );
+      {/* Nutrients by function */}
+      <section>
+        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-1">Nutrients by Function</h2>
+        <p className="text-slate-500 text-sm mb-6">What each system needs and why it matters for athletes.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {NUTRITION_CATEGORIES.map(cat => (
+            <button
+              key={cat.key}
+              onClick={() => setOpenCat(cat)}
+              className="text-left bg-white border border-slate-200 rounded-2xl p-5 hover:border-emerald-300 hover:shadow-lg hover:-translate-y-0.5 transition-all group"
+            >
+              <div className="text-3xl mb-3">{cat.emoji}</div>
+              <h3 className="font-bold text-lg text-slate-900 tracking-tight mb-1">{cat.title}</h3>
+              <p className="text-sm text-slate-500 leading-snug line-clamp-3 mb-3">{cat.why}</p>
+              <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                {cat.nutrients.length} nutrients
+                <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Nutrients for injuries / conditions */}
+      <section>
+        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight mb-1">Nutrients for Injuries & Conditions</h2>
+        <p className="text-slate-500 text-sm mb-6">Dealing with something specific? Tap it to see the nutrients that support prevention and recovery.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {INJURY_NUTRIENTS.map(item => (
+            <button
+              key={item.condition}
+              onClick={() => setOpenInjury(item)}
+              className="text-left bg-white border border-slate-200 rounded-2xl p-5 hover:border-blue-300 hover:shadow-lg hover:-translate-y-0.5 transition-all group"
+            >
+              <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center mb-3">
+                <Stethoscope className="w-5 h-5 text-blue-600" />
+              </div>
+              <h3 className="font-bold text-slate-900 tracking-tight mb-2">{item.condition}</h3>
+              <div className="flex flex-wrap gap-1.5">
+                {item.nutrients.map(n => (
+                  <span key={n} className="text-[10px] px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md font-bold">{n}</span>
+                ))}
+              </div>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Category modal */}
+      {openCat && (
+        <Modal
+          title={`${openCat.emoji} ${openCat.title}`}
+          subtitle={openCat.why}
+          accent="text-slate-900"
+          onClose={() => setOpenCat(null)}
+        >
+          <NutrientList nutrients={openCat.nutrients} />
+        </Modal>
+      )}
+
+      {/* Injury → nutrient modal */}
+      {openInjury && (
+        <Modal
+          title={openInjury.condition}
+          subtitle={openInjury.note}
+          accent="text-slate-900"
+          onClose={() => setOpenInjury(null)}
+        >
+          <NutrientList nutrients={openInjury.nutrients.map(name => ({ name, ...NUTRIENT_INFO[name] }))} />
+        </Modal>
+      )}
+    </div>
+  )
 }
