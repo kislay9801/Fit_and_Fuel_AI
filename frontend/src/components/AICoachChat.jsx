@@ -88,9 +88,9 @@ export default function AICoachChat({ sessions, onClose }) {
       </div>
 
       {/* Messages Area */}
-      <div 
+      <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50"
+        className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 bg-slate-50"
       >
         {messages.map((msg, idx) => {
           const isUser = msg.role === 'user'

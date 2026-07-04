@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getUserSessions } from '../firebase/firestore'
-import { Search, Filter, BarChart2, CalendarDays, Clock, ChevronDown, Activity, MessageSquare, X } from 'lucide-react'
+import { Search, Filter, BarChart2, CalendarDays, Clock, ChevronDown, Activity, MessageSquare } from 'lucide-react'
 import AICoachChat from '../components/AICoachChat'
 import MarkdownMessage from '../components/MarkdownMessage'
+import Modal from '../components/Modal'
 import { getIssueInfo } from '../utils/issueInfo'
 
 const exerciseEmoji = { squat: '🏋️', pushup: '💪', deadlift: '🔥' }
@@ -111,32 +112,14 @@ export default function History({ user }) {
 
       {/* ── Full AI Coach review modal ── */}
       {openSummary && (
-        <div
-          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/50 animate-in fade-in duration-200"
-          onClick={() => setOpenSummary(null)}
+        <Modal
+          title="AI Coach Review"
+          subtitle={<span className="capitalize">{openSummary.exercise}</span>}
+          accent="text-blue-600"
+          onClose={() => setOpenSummary(null)}
         >
-          <div
-            className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[80vh] overflow-hidden flex flex-col"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between p-5 border-b border-slate-100">
-              <div className="flex items-center gap-2 text-blue-600 min-w-0">
-                <Activity className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm font-bold uppercase tracking-widest truncate">AI Coach · <span className="capitalize">{openSummary.exercise}</span></span>
-              </div>
-              <button
-                onClick={() => setOpenSummary(null)}
-                className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors flex-shrink-0"
-                aria-label="Close"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="p-5 overflow-y-auto">
-              <MarkdownMessage text={openSummary.summary} className="text-slate-700 text-sm leading-relaxed" />
-            </div>
-          </div>
-        </div>
+          <MarkdownMessage text={openSummary.summary} className="text-slate-700 text-sm leading-relaxed" />
+        </Modal>
       )}
 
       {/* ── Page content ── */}
