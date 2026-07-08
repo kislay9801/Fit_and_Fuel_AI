@@ -6,6 +6,11 @@ and flag injury risks, and an AI coach (Gemini) turns each session into plain-la
 feedback. Sessions are stored in Firebase, and the whole thing deploys to Vercel as a
 single project (static frontend + a serverless coaching API).
 
+Around the analysis engine sits a small athlete-education platform: a progress
+dashboard (trend chart, training streak, data-driven recommendation), session
+history with an AI coach chat, and reference sections for Nutrition, Injuries &
+Recovery, and a demo Exercise Library.
+
 ## Stack
 
 - **Frontend:** Vite + React + Tailwind CSS
@@ -20,11 +25,15 @@ single project (static frontend + a serverless coaching API).
 
 1. Sign in with Firebase (email/password or Google).
 2. Pick an exercise from the library (10 available — see below).
-3. Use the live camera or upload a video.
-4. MediaPipe extracts pose landmarks in the browser.
-5. Frontend utilities compute joint angles, count reps, score each rep, and flag risks.
-6. The session (score, reps, issues, AI summary) is saved to Firestore.
-7. The coaching API returns a personalized summary; the AI Coach chat answers
+3. The app shows the **recommended camera angle** for that exercise (e.g. film a
+   squat side-on) so the analysis can see what it needs to grade.
+4. Use the live camera or upload a video.
+5. MediaPipe extracts pose landmarks in the browser.
+6. Frontend utilities compute joint angles, count reps, score each rep, and flag risks
+   — suppressing any fault that can't be judged from the chosen angle (e.g. knee cave
+   isn't flagged from a side-on squat).
+7. The session (score, reps, issues, AI summary) is saved to Firestore.
+8. The coaching API returns a personalized summary; the AI Coach chat answers
    follow-up questions using your session history as context.
 
 ## Supported exercises
@@ -74,15 +83,34 @@ Each exercise score is a weighted blend of component scores (0–100):
 
 Score bands: **90+** Excellent · **75–89** Good · **55–74** Needs Improvement · **below 55** High Risk.
 
+## Companion features
+
+- **Dashboard** — training streak counter, a form-score trend chart with 7-day /
+  monthly / 6-month views (real calendar aggregation), and an AI recommendation
+  derived from your most-flagged issues.
+- **History** — every saved session with reps, plain-language issue explanations,
+  and an AI Coach chat that answers questions using your history as context.
+- **Nutrition** — six functional categories (energy, muscle, bone, blood, immune,
+  nerve/muscle signaling) with nutrient descriptions and food sources, plus an
+  injury → nutrient lookup.
+- **Injuries & Recovery** — plain-language guides to common injuries (ACL, Achilles,
+  adductor, labrum) with recovery outlook and recommended exercises.
+- **Exercise Library** — categorized rehab/prevention/plyometric/strength exercises,
+  each with its recommended filming angle and demo videos.
+- **Admin** — an owner-only page listing app users and their stats.
+
 ## Project structure
 
 ```text
 frontend/
   src/
-    components/      UI, MediaPipe overlay, AI coach chat, sidebar
-    pages/           Landing, Auth, Dashboard, ExerciseSelect, Session, History, Admin, services/
+    components/      UI, MediaPipe overlay, AI coach chat, sidebar, modal
+    pages/           Landing, Auth, Dashboard, ExerciseSelect, Session, History, Admin
+      services/      Nutrition, Injuries, ExercisesCatalog, Athletes
     firebase/        Firebase init, auth, Firestore helpers
-    utils/           Angle math, scoring, risk detection, adaptive rep counting, issue explanations
+    data/            Nutrition, injuries, and exercise-catalog content
+    utils/           Angle math, scoring, risk detection, adaptive rep counting,
+                     recording-angle guidance, issue explanations, admin gate
 api/
   index.py           Vercel serverless entrypoint (mounts the coaching router)
 backend/
